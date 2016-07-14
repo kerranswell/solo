@@ -1,0 +1,85 @@
+function getString(n) -> result
+    result := notes2strings[n]
+end function
+function getFret(n) -> result
+    result := notes2frets[n]
+end function
+
+function fillBoardTable()
+    for i := 0 to 127
+        notes2strings[i] := 0
+        notes2frets[i] := 0
+    end for
+    
+    notes2strings[_A(1)] := 6
+    notes2strings[_C(2)] := 6
+    notes2strings[_D(2)] := 5
+    notes2strings[_E(2)] := 5
+    notes2strings[_G(2)] := 4
+    notes2strings[_A(2)] := 4
+    notes2strings[_C(3)] := 3
+    notes2strings[_D(3)] := 3
+    notes2strings[_E(3)] := 2
+    notes2strings[_G(3)] := 2
+    notes2strings[_A(3)] := 1
+    notes2strings[_C(4)] := 1
+
+    notes2frets[_A(1)] := 5
+    notes2frets[_C(2)] := 8
+    notes2frets[_D(2)] := 5
+    notes2frets[_E(2)] := 7
+    notes2frets[_G(2)] := 5
+    notes2frets[_A(2)] := 7
+    notes2frets[_C(3)] := 5
+    notes2frets[_D(3)] := 7
+    notes2frets[_E(3)] := 5
+    notes2frets[_G(3)] := 8
+    notes2frets[_A(3)] := 5
+    notes2frets[_C(4)] := 8
+end function
+
+on listener
+    if ($NI_SIGNAL_TYPE = $NI_SIGNAL_TRANSP_STOP) 
+        stopAllNotes()
+    end if
+end on
+
+
+{ ***** Note Code, Ha-ha ****** }
+
+function _C(n) -> result
+    result := (n+2) * 12
+end function
+function _Db(n) -> result
+    result := (n+2) * 12 + 1
+end function
+function _D(n) -> result
+    result := (n+2) * 12 + 2
+end function
+function _Eb(n) -> result
+    result := (n+2) * 12 + 3
+end function
+function _E(n) -> result
+    result := (n+2) * 12 + 4
+end function
+function _F(n) -> result
+    result := (n+2) * 12 + 5
+end function
+function _Gb(n) -> result
+    result := (n+2) * 12 + 6
+end function
+function _G(n) -> result
+    result := (n+2) * 12 + 7
+end function
+function _Ab(n) -> result
+    result := (n+2) * 12 + 8
+end function
+function _A(n) -> result
+    result := (n+2) * 12 + 9
+end function
+function _Bb(n) -> result
+    result := (n+2) * 12 + 10
+end function
+function _B(n) -> result
+    result := (n+2) * 12 + 11
+end function

@@ -1,0 +1,46 @@
+function setPlayModeByVelocity(velocity)
+
+    PlayMode.lh_Vibrato := 0
+    {PlayMode.altStroke := 0}
+    PlayMode.letRing := 0
+    
+    if (in_range(velocity, velocityArtZones.rh_Muted_Down[0], velocityArtZones.rh_Muted_Down[1]))
+        PlayMode.rh_Muted := 1
+        if (UI.velocityControl = 1)
+            PlayMode.pickDown := 1
+        end if
+    else if (in_range(velocity, velocityArtZones.rh_Muted_Up[0], velocityArtZones.rh_Muted_Up[1]))
+        PlayMode.rh_Muted := 1
+        if (UI.velocityControl = 1)
+            PlayMode.pickDown := 0
+        end if
+    else if (in_range(velocity, velocityArtZones.rh_Opened_Down[0], velocityArtZones.rh_Opened_Down[1]))
+        PlayMode.rh_Muted := 0
+        if (UI.velocityControl = 1)
+            PlayMode.pickDown := 1
+        end if
+    else if (in_range(velocity, velocityArtZones.rh_Opened_Up[0], velocityArtZones.rh_Opened_Up[1]))
+        PlayMode.rh_Muted := 0
+        if (UI.velocityControl = 1)
+            PlayMode.pickDown := 0
+        end if
+    else if (in_range(velocity, velocityArtZones.lh_Vibrato[0], velocityArtZones.lh_Vibrato[1]))
+        PlayMode.pickDown := 1
+        PlayMode.lh_Vibrato := 1
+    else if (in_range(velocity, velocityArtZones.letRing_Up[0], velocityArtZones.letRing_Up[1]))
+        PlayMode.letRing := 1
+        PlayMode.rh_Muted := 0
+        if (UI.velocityControl = 1)
+            PlayMode.pickDown := 0
+        end if
+    else if (in_range(velocity, velocityArtZones.letRing_Down[0], velocityArtZones.letRing_Down[1]))
+        PlayMode.letRing := 1
+        PlayMode.rh_Muted := 0
+        if (UI.velocityControl = 1)
+            PlayMode.pickDown := 1
+        end if
+    end if
+    
+    uiFeedbackPlayMode()
+            
+end function
