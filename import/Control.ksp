@@ -31,16 +31,16 @@ function extControl(etype, value)
     select etype
 
         case ExtEventType.letRing
-            PlayMode.letRing := value
+            PlayModeGlobal.letRing := value
 
         case ExtEventType.rh_Muted
-            PlayMode.rh_Muted := value
+            PlayModeGlobal.rh_Muted := value
 
         case ExtEventType.altStroke
-            PlayMode.altStroke := value
+            PlayModeGlobal.altStroke := value
 
         case ExtEventType.lh_Vibrato
-            PlayMode.lh_Vibrato := value
+            PlayModeGlobal.lh_Vibrato := value
 
         case ExtEventType.vibratoSpeed
 
@@ -70,10 +70,10 @@ function uiFeedback(etype, value)
 end function
 
 function uiFeedbackPlayMode
-    uiFeedback(ExtEventType.letRing, PlayMode.letRing)
-    uiFeedback(ExtEventType.rh_Muted, PlayMode.rh_Muted)
-    uiFeedback(ExtEventType.altStroke, PlayMode.altStroke)
-    uiFeedback(ExtEventType.lh_Vibrato, PlayMode.lh_Vibrato)
+    uiFeedback(ExtEventType.letRing, PlayModeGlobal.letRing)
+    uiFeedback(ExtEventType.rh_Muted, PlayModeGlobal.rh_Muted)
+    uiFeedback(ExtEventType.altStroke, PlayModeGlobal.altStroke)
+    uiFeedback(ExtEventType.lh_Vibrato, PlayModeGlobal.lh_Vibrato)
 end function
 
 on controller
@@ -83,12 +83,12 @@ on controller
         { Alt Stroke }
         case 20
             if (%CC[$CC_NUM] > 0)
-                PlayMode.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
-                PlayMode.altStroke := 1
+                PlayModeGlobal.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
+                PlayModeGlobal.altStroke := 1
                 UI.velocityControl := 0
             else
-                PlayMode.pickDown := 1
-                PlayMode.altStroke := 0
+                PlayModeGlobal.pickDown := 1
+                PlayModeGlobal.altStroke := 0
                 UI.velocityControl := 1
             end if
 
@@ -112,9 +112,9 @@ on controller
         { Let Ring }
         case 23
             if (%CC[$CC_NUM] = 0)
-                PlayMode_change(ExtEventType.letRing, 0)
+                PlayModeGlobal_change(ExtEventType.letRing, 0)
             else
-                PlayMode_change(ExtEventType.letRing, 1)
+                PlayModeGlobal_change(ExtEventType.letRing, 1)
             end if
 
     end select

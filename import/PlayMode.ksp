@@ -2,7 +2,8 @@ function setPlayModeByVelocity(velocity)
 
     PlayMode.lh_Vibrato := 0
     {PlayMode.altStroke := 0}
-    // PlayMode.letRing := 0
+    PlayMode.letRing := PlayModeGlobal.letRing
+    PlayMode.pickDown := PlayModeGlobal.pickDown
 
     if (in_range(velocity, velocityArtZones.rh_Muted_Down[0], velocityArtZones.rh_Muted_Down[1]))
         PlayMode.rh_Muted := 1
@@ -69,6 +70,31 @@ function PlayMode_change(type, val)
             end if
 
             PlayMode.letRing := val
+
+    end select
+
+end function
+
+function PlayModeGlobal_change(type, val)
+
+    select (type)
+
+        case ExtEventType.lh_Vibrato
+            
+            if (val = 1)
+                PlayModeGlobal.rh_Muted := 0
+            end if
+
+            PlayModeGlobal.lh_Vibrato := val
+
+
+        case ExtEventType.letRing
+
+            if (val = 1)
+                PlayModeGlobal.rh_Muted := 0
+            end if
+
+            PlayModeGlobal.letRing := val
 
     end select
 

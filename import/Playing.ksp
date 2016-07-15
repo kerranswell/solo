@@ -165,7 +165,7 @@ function Playing_vibratoTrigger(on)
 
                 j := Playing_createChild(i)
                 if (j # -1)
-                    PlayMode_change(ExtEventType.lh_Vibrato, 1)
+                    // PlayMode_change(ExtEventType.lh_Vibrato, 1)
                     // velocity := 
                     // Playing.sys[j] := play_note(Playing.note[j], velocity, offset, -1)
                 end if
