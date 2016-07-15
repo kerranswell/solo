@@ -78,36 +78,46 @@ end function
 
 on controller
 
-    {Alt Stroke CC}
-    if ($CC_NUM = 20)
-        if (%CC[$CC_NUM] > 0)
-            PlayMode.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
-            PlayMode.altStroke := 1
-            UI.velocityControl := 0
-        else
-            PlayMode.pickDown := 1
-            PlayMode.altStroke := 0
-            UI.velocityControl := 1
-        end if
-    end if
+    select ($CC_NUM)
 
-    {Mute Strings}
-    if ($CC_NUM = 22)
-        if (in_range(%CC[$CC_NUM], 1, 6))
-            stopNotesOnString(%CC[$CC_NUM])
-        else
-            stopAllNotes()
-        end if
-    end if
+        { Alt Stroke }
+        case 20
+            if (%CC[$CC_NUM] > 0)
+                PlayMode.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
+                PlayMode.altStroke := 1
+                UI.velocityControl := 0
+            else
+                PlayMode.pickDown := 1
+                PlayMode.altStroke := 0
+                UI.velocityControl := 1
+            end if
 
-    {Muted CC}
-{    if ($CC_NUM = 21)
-        if (%CC[$CC_NUM] > 0)
-            PlayMode.rh_Muted := 1
-        else
-            PlayMode.rh_Muted := 0
-        end if
-    end if}
+        { Vibrato Trigger }
+        case 21
+            select (%CC[$CC_NUM])
+                case 100 to 127
+                    // Vibrato ON
+                    // Playing_vibratoTrigger(1)
+
+            end select
+
+        { Stop Strings }
+        case 22
+            if (in_range(%CC[$CC_NUM], 1, 6))
+                stopNotesOnString(%CC[$CC_NUM])
+            else
+                stopAllNotes()
+            end if
+
+        { Let Ring }
+        case 23
+            if (%CC[$CC_NUM] = 0)
+                PlayMode_change(ExtEventType.letRing, 0)
+            else
+                PlayMode_change(ExtEventType.letRing, 1)
+            end if
+
+    end select
 
     {debug_clear()
     debug_Strings()}

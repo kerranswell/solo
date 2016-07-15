@@ -4,7 +4,7 @@ function Playing_getIndex(_note, string) -> result
     declare break := 0
 
     while (i < num_elements(Playing.sys) and break = 0)
-        if (Playing.notes[i] = _note and (Playing.string[i] = string or string = 0) and Playing.parent[i] = -1)
+        if (Playing.note[i] = _note and (Playing.string[i] = string or string = 0) and Playing.parent[i] = -1)
             break := 1 {found note, index will be current i. Thus before i++ we have to do i--}
             dec(i)
         end if
@@ -42,7 +42,7 @@ function Playing_push(sys, _note, string, fret, active)
 
     if (i < num_elements(Playing.sys))
         Playing.sys[i] := sys
-        Playing.notes[i] := _note
+        Playing.note[i] := _note
         Playing.string[i] := string
         Playing.fret[i] := fret
 
@@ -53,9 +53,61 @@ function Playing_push(sys, _note, string, fret, active)
 
 end function
 
+function Playing_getFreeSlotIndex -> result
+    declare i := 0
+    while (i < num_elements(Playing.sys) and Playing.sys[i] # -1)
+        inc(i)
+    end while
+
+    result := -1
+    if (i < num_elements(Playing.sys))
+        result := i
+    end if
+end function
+
+function Playing_createChild(i) -> result
+    declare j
+    j := Playing_getFreeSlotIndex()
+
+    if (j # -1)
+        Playing_copySlot(i,j)
+
+        Playing.parent[j] := i
+        Playing.active[j] := 0
+    else 
+        message(@MSG_MAX_VOICE_REACHED)
+    end if
+
+    result := j
+end function
+
+function Playing_copySlot(i,j)
+
+    macro copyProp(#p#)
+        Playing.#p#[j] := Playing.#p#[i]
+    end macro
+
+    copyProp(sys)
+    copyProp(note)
+
+    copyProp(string)
+    copyProp(fret)
+
+    copyProp(letRing)
+    copyProp(rh_Muted)
+    copyProp(pickDown)
+    copyProp(lh_Vibrato)
+
+    copyProp(parent)
+    copyProp(active)
+
+    copyProp(ghost)
+
+end function
+
 function Playing_remove(_note, string)
     declare i := 0
-    while (i < num_elements(Playing.sys) and (Playing.notes[i] # _note or Playing.string[i] # string))
+    while (i < num_elements(Playing.sys) and (Playing.note[i] # _note or Playing.string[i] # string))
         inc(i)
     end while
 
@@ -72,7 +124,7 @@ function Playing_resetAll
 end function
 
 function Playing_resetItem(i)
-    Playing.notes[i] := -1
+    Playing.note[i] := -1
     Playing.sys[i] := -1
     Playing.string[i] := -1
     Playing.fret[i] := -1
@@ -101,6 +153,26 @@ function Playing_setArts(i)
     Playing.pickDown[i] := PlayMode.pickDown
     Playing.lh_Vibrato[i] := PlayMode.lh_Vibrato
     Playing.letRing[i] := PlayMode.letRing
+end function
+
+function Playing_vibratoTrigger(on)
+
+    if (on = 1)
+        declare i
+        declare j
+        for i := 0 to num_elements(Playing.sys)-1
+            if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.parent[i] = -1 and Playing.lh_Vibrato[i] = 0 and Playing.rh_Muted = 0)
+
+                j := Playing_createChild(i)
+                if (j # -1)
+                    PlayMode_change(ExtEventType.lh_Vibrato, 1)
+                    // velocity := 
+                    // Playing.sys[j] := play_note(Playing.note[j], velocity, offset, -1)
+                end if
+
+            end if
+        end for
+    end if
 end function
 
 macro Playing_getActiveProperty(#p#, i, #var#, #index_var#)

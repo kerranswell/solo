@@ -1,5 +1,10 @@
 { ******* Debugging ******** }
 
+function debug_PlayMode
+    debug("rh_Muted(" & PlayMode.rh_Muted & "), " & "lh_Vibrato(" & PlayMode.lh_Vibrato & "), " & "pickDown(" & PlayMode.pickDown & "), " & "letRing(" & PlayMode.letRing & "), " )
+    debug("---------")
+end function
+
 function debug_Playing
     // debug_clear()
     for i := 0 to Globals.maxVoices-1
@@ -67,7 +72,7 @@ function debug_Strings
                 @pickDown := " dn"
             end if
 
-            debug2("n" & Playing.notes[i] & "; string " & Playing.string[i] & @pickDown & @letRing & @rh_Muted & @lh_Vibrato)
+            debug2("n" & Playing.note[i] & "; string " & Playing.string[i] & @pickDown & @letRing & @rh_Muted & @lh_Vibrato)
         end if
     end for
     debug2("---------")  

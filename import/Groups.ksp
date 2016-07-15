@@ -1,58 +1,58 @@
-function resetGroups
-    for i := 0 to Globals.maxGroups-1
-        activeGroups[i] := -1
-    end for
-end function
-
-function allowGroups
-    
-    declare min := 0
-    declare max := Globals.maxGroups-1
-    
-    for i := 0 to Globals.maxGroups-1
-        if (activeGroups[i] # -1)
-            max := i
-        end if
-    end for
-    
-    declare r 
-    r := random(min, max)
-    Globals.lastGroupIndex := activeGroups[r]
-    allow_group(Globals.lastGroupIndex)
-end function
-
-function setActiveGroups
-    declare @gname
-    @gname := formGroupName()
-
-    for i := 0 to Globals.maxGroups-1
-        tmp := find_group(@gname & "_t" & (i+1))
-        if (tmp = 0 and not(zeroGroup()))
-            tmp := -1
-        end if
-        if (tmp >= 0 )
-            activeGroups[i]  := tmp
-        end if
-    end for
-end function
-
-function zeroGroup -> result
-    result := PlayMode.rh_Muted = 0 and PlayMode.pickDown = 1 and PlayMode.lh_Vibrato = 0
-end function
-
-function formGroupName() -> result
-    
-    declare !rh_muted[2]
-    !rh_muted[0] := "o"
-    !rh_muted[1] := "m"
-    
-    declare !pickDown[2]
-    !pickDown[0] := "_pu"
-    !pickDown[1] := "_pd"
-    result := rh_muted[PlayMode.rh_Muted] & pickDown[PlayMode.pickDown]
-
-    if (PlayMode.lh_Vibrato > 0)
-        result := "v" & PlayMode.lh_Vibrato
-    end if
-        
-end function
+function resetGroups
+    for i := 0 to Globals.maxGroups-1
+        activeGroups[i] := -1
+    end for
+end function
+
+function allowGroups
+
+    declare min := 0
+    declare max := Globals.maxGroups-1
+
+    for i := 0 to Globals.maxGroups-1
+        if (activeGroups[i] # -1)
+            max := i
+        end if
+    end for
+
+    declare r
+    r := random(min, max)
+    Globals.lastGroupIndex := activeGroups[r]
+    allow_group(Globals.lastGroupIndex)
+end function
+
+function setActiveGroups
+    declare @gname
+    @gname := formGroupName()
+
+    for i := 0 to Globals.maxGroups-1
+        tmp := find_group(@gname & "_t" & (i+1))
+        if (tmp = 0 and not(zeroGroup()))
+            tmp := -1
+        end if
+        if (tmp >= 0 )
+            activeGroups[i]  := tmp
+        end if
+    end for
+end function
+
+function zeroGroup -> result
+    result := PlayMode.rh_Muted = 0 and PlayMode.pickDown = 1 and PlayMode.lh_Vibrato = 0
+end function
+
+function formGroupName() -> result
+
+    declare !rh_muted[2]
+    !rh_muted[0] := "o"
+    !rh_muted[1] := "m"
+
+    declare !pickDown[2]
+    !pickDown[0] := "_pu"
+    !pickDown[1] := "_pd"
+    result := rh_muted[PlayMode.rh_Muted] & pickDown[PlayMode.pickDown]
+
+    if (PlayMode.lh_Vibrato > 0)
+        result := "v" & PlayMode.lh_Vibrato
+    end if
+
+end function
