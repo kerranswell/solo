@@ -1,109 +1,109 @@
-on ui_control (UI.rh_Muted)
-    extControl(ExtEventType.rh_Muted, UI.rh_Muted)
-end on 
-
-on ui_control (UI.lh_Vibrato)
-    extControl(ExtEventType.lh_Vibrato, UI.lh_Vibrato)
-end on 
-
-on ui_control (UI.altStroke)
-    extControl(ExtEventType.altStroke, UI.altStroke)
-end on 
-
-on ui_control (UI.letRing)
-    extControl(ExtEventType.letRing, UI.letRing)
-end on 
-
-on ui_control (UI.vibratoSpeed)
-    extControl(ExtEventType.vibratoSpeed, UI.vibratoSpeed)
-end on 
-
+on ui_control (UI.rh_Muted)
+    extControl(ExtEventType.rh_Muted, UI.rh_Muted)
+end on
+
+on ui_control (UI.lh_Vibrato)
+    extControl(ExtEventType.lh_Vibrato, UI.lh_Vibrato)
+end on
+
+on ui_control (UI.altStroke)
+    extControl(ExtEventType.altStroke, UI.altStroke)
+end on
+
+on ui_control (UI.letRing)
+    extControl(ExtEventType.letRing, UI.letRing)
+end on
+
+on ui_control (UI.vibratoSpeed)
+    extControl(ExtEventType.vibratoSpeed, UI.vibratoSpeed)
+end on
+
 function extControl(etype, value)
-    
-    declare ev
-    
-    select etype
-        
-        case ExtEventType.letRing
-            PlayMode.letRing := value
-            
-        case ExtEventType.rh_Muted
-            PlayMode.rh_Muted := value
-            
-        case ExtEventType.altStroke
-            PlayMode.altStroke := value
-            
-        case ExtEventType.lh_Vibrato
-            PlayMode.lh_Vibrato := value
-            
-        case ExtEventType.vibratoSpeed
-            
-            declare group_index
-
-            for i := 1 to Globals.takeCounts[ArtsCodes.v1]
-                group_index := find_group("v1_t" & i)
+
+    declare ev
+
+    select etype
+
+        case ExtEventType.letRing
+            PlayMode.letRing := value
+
+        case ExtEventType.rh_Muted
+            PlayMode.rh_Muted := value
+
+        case ExtEventType.altStroke
+            PlayMode.altStroke := value
+
+        case ExtEventType.lh_Vibrato
+            PlayMode.lh_Vibrato := value
+
+        case ExtEventType.vibratoSpeed
+
+            declare group_index
+
+            for i := 1 to Globals.takeCounts[ArtsCodes.v1]
+                group_index := find_group("v1_t" & i)
                 ev := Math.epSpeed(Math.V2E, (value + 100) * 10)
-                set_engine_par($ENGINE_PAR_SPEED, ev, group_index, -1, -1)
-            end for
-            
-    end select
-    
-    uiFeedback(etype, value)
-end function
-
-function uiFeedback(etype, value)
-    if (etype = ExtEventType.letRing and UI.letRing # value)
-        UI.letRing := value
-    else if (etype = ExtEventType.rh_Muted and UI.rh_Muted # value)
-        UI.rh_Muted := value
-    else if (etype = ExtEventType.altStroke and UI.altStroke # value)
-        UI.altStroke := value
-    else if (etype = ExtEventType.lh_Vibrato and UI.lh_Vibrato # value)
-        UI.lh_Vibrato := value
-    end if
-end function
-
-function uiFeedbackPlayMode
-    uiFeedback(ExtEventType.letRing, PlayMode.letRing)
-    uiFeedback(ExtEventType.rh_Muted, PlayMode.rh_Muted)
-    uiFeedback(ExtEventType.altStroke, PlayMode.altStroke)
-    uiFeedback(ExtEventType.lh_Vibrato, PlayMode.lh_Vibrato)
-end function
-
-on controller
-    
-    {Alt Stroke CC}
-    if ($CC_NUM = 20)
-        if (%CC[$CC_NUM] > 0)
-            PlayMode.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
-            PlayMode.altStroke := 1
-            UI.velocityControl := 0
-        else 
-            PlayMode.pickDown := 1
-            PlayMode.altStroke := 0
-            UI.velocityControl := 1
-        end if
-    end if
-
-    {Mute Strings}
-    if ($CC_NUM = 22)
-        if (in_range(%CC[$CC_NUM], 1, 6))
-            stopNotesOnString(%CC[$CC_NUM])
-        else 
-            stopAllNotes()
-        end if
-    end if
-
-    {Muted CC}    
-{    if ($CC_NUM = 21)
-        if (%CC[$CC_NUM] > 0)
-            PlayMode.rh_Muted := 1
-        else 
-            PlayMode.rh_Muted := 0
-        end if
-    end if}
-    
-    {debug_clear()
-    debug_Strings()}
-    uiFeedbackPlayMode()
-end on
+                set_engine_par($ENGINE_PAR_SPEED, ev, group_index, -1, -1)
+            end for
+
+    end select
+
+    uiFeedback(etype, value)
+end function
+
+function uiFeedback(etype, value)
+    if (etype = ExtEventType.letRing and UI.letRing # value)
+        UI.letRing := value
+    else if (etype = ExtEventType.rh_Muted and UI.rh_Muted # value)
+        UI.rh_Muted := value
+    else if (etype = ExtEventType.altStroke and UI.altStroke # value)
+        UI.altStroke := value
+    else if (etype = ExtEventType.lh_Vibrato and UI.lh_Vibrato # value)
+        UI.lh_Vibrato := value
+    end if
+end function
+
+function uiFeedbackPlayMode
+    uiFeedback(ExtEventType.letRing, PlayMode.letRing)
+    uiFeedback(ExtEventType.rh_Muted, PlayMode.rh_Muted)
+    uiFeedback(ExtEventType.altStroke, PlayMode.altStroke)
+    uiFeedback(ExtEventType.lh_Vibrato, PlayMode.lh_Vibrato)
+end function
+
+on controller
+
+    {Alt Stroke CC}
+    if ($CC_NUM = 20)
+        if (%CC[$CC_NUM] > 0)
+            PlayMode.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
+            PlayMode.altStroke := 1
+            UI.velocityControl := 0
+        else
+            PlayMode.pickDown := 1
+            PlayMode.altStroke := 0
+            UI.velocityControl := 1
+        end if
+    end if
+
+    {Mute Strings}
+    if ($CC_NUM = 22)
+        if (in_range(%CC[$CC_NUM], 1, 6))
+            stopNotesOnString(%CC[$CC_NUM])
+        else
+            stopAllNotes()
+        end if
+    end if
+
+    {Muted CC}
+{    if ($CC_NUM = 21)
+        if (%CC[$CC_NUM] > 0)
+            PlayMode.rh_Muted := 1
+        else
+            PlayMode.rh_Muted := 0
+        end if
+    end if}
+
+    {debug_clear()
+    debug_Strings()}
+    uiFeedbackPlayMode()
+end on

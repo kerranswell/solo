@@ -1,83 +1,83 @@
-{ ******* Debugging ******** }
-
-function debug_Playing
-    for i := 0 to Globals.maxVoices-1
-        debug("note(" & i & "): n" & Playing.notes[i] & ":s" & Playing.sys[i])
-    end for
-end function
-
-function debug_Groups
-    for i := 0 to Globals.maxGroups-1
-        debug(activeGroups[i])
-    end for    
-end function
-function debug_GroupNames
-    for i := 0 to Globals.maxGroups-1
-        debug(group_name(activeGroups[i]))
-    end for    
-end function
-
-function debug_affectedGroups
-    for i := 0 to num_elements(%GROUPS_AFFECTED)-1
-        debug(group_name(%GROUPS_AFFECTED[i]))
-    end for    
-end function
-
-function debug_Strings
-    declare @pickDown
-    declare @letRing
-    declare @rh_Muted   
-    declare @lh_Vibrato
-    
-    debug2_clear()
-    
-    for i := 0 to Globals.maxVoices-1
-        if (Playing.string[i] > 0)
-                       
-            if (Playing.pickDown[i] = 0)
-                @pickDown := " up"
-            else 
-                @pickDown := " dn"
-            end if
-            
-            if (Playing.letRing[i] = 1)
-                @letRing := " LetRing"
-            else 
-                @letRing := ""
-            end if
-            
-            if (Playing.rh_Muted[i] = 1)
-                @rh_Muted := " P.M."
-            else 
-                @rh_Muted := ""
-            end if
-            
-            if (Playing.lh_Vibrato[i] = 0)
-                @lh_Vibrato := ""
-            else 
-                @lh_Vibrato := " Vib" & Playing.lh_Vibrato[i]
-                @rh_Muted := ""
-                @letRing := ""
-                @pickDown := " dn"
-            end if
-            
-            debug2("n" & Playing.notes[i] & "; string " & Playing.string[i] & @pickDown & @letRing & @rh_Muted & @lh_Vibrato)
-        end if
-    end for
-end function
-
-function debug(s)
-    add_text_line(UI.label, s)
-end function
-
-function debug2(s)
-    add_text_line(UI.label2, s)
-end function
-
-function debug_clear
-    set_text(UI.label, "")
+{ ******* Debugging ******** }
+
+function debug_Playing
+    for i := 0 to Globals.maxVoices-1
+        debug("note(" & i & "): n" & Playing.notes[i,0] & ":s" & Playing.sys[i,0])
+    end for
 end function
 
-function debug2_clear
-    set_text(UI.label2, "")
+function debug_Groups
+    for i := 0 to Globals.maxGroups-1
+        debug(activeGroups[i])
+    end for
+end function
+function debug_GroupNames
+    for i := 0 to Globals.maxGroups-1
+        debug(group_name(activeGroups[i]))
+    end for
+end function
+
+function debug_affectedGroups
+    for i := 0 to num_elements(%GROUPS_AFFECTED)-1
+        debug(group_name(%GROUPS_AFFECTED[i]))
+    end for
+end function
+
+function debug_Strings
+    declare @pickDown
+    declare @letRing
+    declare @rh_Muted
+    declare @lh_Vibrato
+
+    debug2_clear()
+
+    for i := 0 to Globals.maxVoices-1
+        if (Playing.string[i] > 0)
+
+            if (Playing.pickDown[i] = 0)
+                @pickDown := " up"
+            else
+                @pickDown := " dn"
+            end if
+
+            if (Playing.letRing[i] = 1)
+                @letRing := " LetRing"
+            else
+                @letRing := ""
+            end if
+
+            if (Playing.rh_Muted[i] = 1)
+                @rh_Muted := " P.M."
+            else
+                @rh_Muted := ""
+            end if
+
+            if (Playing.lh_Vibrato[i] = 0)
+                @lh_Vibrato := ""
+            else
+                @lh_Vibrato := " Vib" & Playing.lh_Vibrato[i]
+                @rh_Muted := ""
+                @letRing := ""
+                @pickDown := " dn"
+            end if
+
+            debug2("n" & Playing.notes[i] & "; string " & Playing.string[i] & @pickDown & @letRing & @rh_Muted & @lh_Vibrato)
+        end if
+    end for
+end function
+
+function debug(s)
+    add_text_line(UI.label, s)
+end function
+
+function debug2(s)
+    add_text_line(UI.label2, s)
+end function
+
+function debug_clear
+    set_text(UI.label, "")
+end function
+
+function debug2_clear
+    set_text(UI.label2, "")
 end function
