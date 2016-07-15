@@ -1,0 +1,19 @@
+function fill1DArray(arr, val)
+	declare i
+
+	for i := 0 to arr.SIZE_D1-1
+		arr[i] := val
+	end for
+end function
+
+function fill2DArray(arr, val)
+
+	declare i
+	declare j
+
+	for i := 0 to arr.SIZE_D1-1
+		for j:= 0 to arr.SIZE_D2-1
+			arr[i,j] := val
+		end for
+	end for
+end function

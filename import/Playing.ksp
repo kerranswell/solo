@@ -1,69 +1,124 @@
 
-function Playing_getIndex(_note, string) -> result
-    declare i := 0
-    declare break := 0
-    
-    while (i < num_elements(Playing.sys) and break = 0)
-        if (Playing.notes[i] = _note and (Playing.string[i] = string or string = 0))
-            break := 1 {found note, index will be current i. Thus before i++ we have to do i--}
-            dec(i)
-        end if
-        
-        inc(i)
-    end while
-       
-    result := -1
-    if (i < num_elements(Playing.sys))
-        result := i
-    end if    
-end function
+function Playing_getIndex(_note, string) -> result
+    declare i := 0
+    declare break := 0
 
-function Playing_push(sys, _note, string, fret)
-    declare i := 0
-    while (i < num_elements(Playing.sys) and Playing.notes[i] # -1)
-        inc(i)
-    end while
-    
-    if (i < num_elements(Playing.sys))
-        Playing.notes[i] := _note
-        Playing.sys[i] := sys
-        Playing.string[i] := string
-        Playing.fret[i] := fret
-        
-        Playing_setArts(i)
-    end if
-    
-end function
-
-function Playing_remove(_note, string)
-    declare i := 0
-    while (i < num_elements(Playing.sys) and (Playing.notes[i] # _note or Playing.string[i] # string))
-        inc(i)
-    end while
-
-    if (i < num_elements(Playing.sys))
-        Playing_resetItem(i)
-    end if
-    
-end function
-
-function Playing_resetAll
-    for i := 0 to num_elements(Playing.sys)-1
-        Playing_resetItem(i)
-    end for
-end function
-
-function Playing_resetItem(i)
-    Playing.notes[i] := -1
-    Playing.sys[i] := -1
-    Playing.string[i] := -1
-    Playing.fret[i] := -1    
-    Playing.letRing[i] := 0
-end function
+    while (i < num_elements(Playing.sys) and break = 0)
+        if (Playing.notes[i] = _note and (Playing.string[i] = string or string = 0) and Playing.parent[i] = -1)
+            break := 1 {found note, index will be current i. Thus before i++ we have to do i--}
+            dec(i)
+        end if
 
-function Playing_setArts(i)
-    Playing.rh_Muted[i] := PlayMode.rh_Muted
-    Playing.pickDown[i] := PlayMode.pickDown
-    Playing.lh_Vibrato[i] := PlayMode.lh_Vibrato
-    Playing.letRing[i] := PlayMode.letRing    
-end function
+        inc(i)
+    end while
+
+    result := -1
+    if (i < num_elements(Playing.sys))
+        result := i
+    end if
+end function
+
+function Playing_getGhostIndex(sys) -> result
+    declare i := 0
+    // debug("cur_sys " & sys)
+    // debug_Playing()
+    while (i < num_elements(Playing.sys) and (Playing.sys[i] # sys or Playing.ghost[i] # 1 or Playing.parent[i] # -1))
+        inc(i)
+    end while
+
+    result := -1
+    if (i < num_elements(Playing.sys))
+        result := i
+    end if
+    // debug("result " & result)
+end function
+
+function Playing_push(sys, _note, string, fret, active)
+    declare i := 0
+
+    while (i < num_elements(Playing.sys) and (Playing.sys[i] # -1 or Playing.ghost[i] = 1)) // looking for first unempty slot which is not ghost note
+        inc(i)
+    end while
+
+    if (i < num_elements(Playing.sys))
+        Playing.sys[i] := sys
+        Playing.notes[i] := _note
+        Playing.string[i] := string
+        Playing.fret[i] := fret
+
+        Playing.active[i] := active
+
+        Playing_setArts(i)
+    end if
+
+end function
+
+function Playing_remove(_note, string)
+    declare i := 0
+    while (i < num_elements(Playing.sys) and (Playing.notes[i] # _note or Playing.string[i] # string))
+        inc(i)
+    end while
+
+    if (i < num_elements(Playing.sys))
+        Playing_resetItem(i)
+    end if
+
+end function
+
+function Playing_resetAll
+    for i := 0 to num_elements(Playing.sys)-1
+        Playing_resetItem(i)            
+    end for
+end function
+
+function Playing_resetItem(i)
+    Playing.notes[i] := -1
+    Playing.sys[i] := -1
+    Playing.string[i] := -1
+    Playing.fret[i] := -1
+    Playing.letRing[i] := 0
+
+    Playing.ghost[i] := 0
+    Playing.parent[i] := -1
+    Playing.active[i] := 0
+end function
+
+function Playing_resetItemWithChilds(i)
+    declare j
+
+    // reset all children notes
+    for j := 0 to Globals.maxVoices-1
+        if (Playing.parent[j] = Playing.sys[i])
+            Playing_resetItem(j)
+        end if
+    end for
+
+    Playing_resetItem(i)
+end function
+
+function Playing_setArts(i)
+    Playing.rh_Muted[i] := PlayMode.rh_Muted
+    Playing.pickDown[i] := PlayMode.pickDown
+    Playing.lh_Vibrato[i] := PlayMode.lh_Vibrato
+    Playing.letRing[i] := PlayMode.letRing
+end function
+
+macro Playing_getActiveProperty(#p#, i, #var#, #index_var#)
+    #var# := Playing.#p#[i]
+
+    for #index_var# := 0 to num_elements(Playing.active)-1
+        if (Playing.active[#index_var#] = 1 and Playing.parent[#index_var#] = Playing.sys[i])
+            #var# := Playing.#p#[#index_var#]
+        end if
+    end for
+end macro
+
+macro Playing_setPropertyTree(#p#, i, v, #index_var#)
+    Playing.#p#[i] := v
+
+    for #index_var# := 0 to num_elements(Playing.#p#)-1
+        if (Playing.parent[#index_var#] = Playing.sys[i])
+            Playing.#p#[#index_var#] := v
+        end if
+    end for
+end macro
