@@ -18,6 +18,12 @@ on ui_control (UI.vibratoSpeed)
     extControl(ExtEventType.vibratoSpeed, UI.vibratoSpeed)
 end on
 
+on ui_control (UI.debugClear)
+    debug_clear()
+    debug2_clear()
+    UI.debugClear := 0
+end on
+
 function extControl(etype, value)
 
     declare ev
