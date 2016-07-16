@@ -34,7 +34,7 @@ function debug_affectedGroups
     end for
 end function
 
-function debug_Strings
+function debug_Strings(legato)
     declare @pickDown
     declare @letRing
     declare @rh_Muted
@@ -72,7 +72,7 @@ function debug_Strings
                 @pickDown := " dn"
             end if
 
-            debug2("n" & Playing.note[i] & "; string " & Playing.string[i] & @pickDown & @letRing & @rh_Muted & @lh_Vibrato)
+            debug2("n" & Playing.note[i] & "; string " & Playing.string[i] & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg("&legato&")")
         end if
     end for
     debug2("---------")  

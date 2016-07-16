@@ -1,6 +1,7 @@
-function setPlayModeByVelocity(velocity)
+function setPlayMode(velocity, note, string)
 
     PlayMode.lh_Vibrato := 0
+
     PlayMode.letRing := PlayModeGlobal.letRing
     PlayMode.pickDown := PlayModeGlobal.pickDown
 
@@ -43,6 +44,20 @@ function setPlayModeByVelocity(velocity)
             PlayMode.pickDown := 1
         end if
 }
+    end if
+
+    PlayMode.legato := 0
+    PlayMode.offset := 0
+    if (PlayMode.rh_Muted = 0)
+        PlayMode.legato := Playing_isOverlapping(string, note)
+
+        if (PlayMode.legato = 1)
+            declare r
+            r := random(0, 770)
+            PlayMode.offset := (20 + r) * 1000 // (30-800)ms
+        else 
+            PlayMode.offset := Control_getAttackSoftness()
+        end if
     end if
 
     uiFeedbackPlayMode()

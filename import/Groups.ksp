@@ -23,7 +23,8 @@ function allowGroups
     end for
 
     declare r
-    r := random(min, max)
+    // r := random(min, max)
+    r := min
     Globals.lastGroupIndex := activeGroups[r]
     allow_group(Globals.lastGroupIndex)
 end function

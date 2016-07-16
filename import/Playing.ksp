@@ -1,4 +1,25 @@
 
+function Playing_timeOperationsStartWithChilds(i)
+    declare j
+    for j := 0 to num_elements(Playing.sys)-1
+        if (Playing.sys[j] # -1 and Playing.parent[j] = i or i = j)
+            Playing_timeOperationsStart(j)
+        end if
+    end for
+end function
+
+function Playing_timeOperationsStart(i)
+    Playing.startTime[i] := $ENGINE_UPTIME
+
+    if (PlayMode.legato = 1)
+        // starting fade-in operation
+        // Playing.fadeIn[i] := 0
+        // change_vol(Playing.sys[i], VOLUME_MIN, 0)
+        fade_in(Playing.sys[i], timeOperationTotals.fadeIn * 1000)
+    end if
+
+end function
+
 function Playing_getIndex(_note, string) -> result
     declare i := 0
     declare break := 0
@@ -70,7 +91,7 @@ function Playing_startChildren(i)
             change_vol(Playing.sys[j], VOLUME_MIN, 1)
         end if        
     end macro
-
+{
     if (Playing.lh_Vibrato[i] = 0)
         createChild(lh_Vibrato, 1)
     end if
@@ -78,7 +99,7 @@ function Playing_startChildren(i)
     if (Playing.lh_Vibrato[i] = 1)
         createChild(lh_Vibrato, 0)
     end if
-
+}
     // debug2('test')
     // debug_Playing()
 
@@ -164,6 +185,9 @@ function Playing_resetItem(i)
     Playing.ghost[i] := 0
     Playing.parent[i] := -1
     Playing.active[i] := 0
+
+    Playing.startTime[i] := -1
+    Playing.fadeIn[i] := -1
 end function
 
 function Playing_resetItemWithChilds(i)
@@ -214,6 +238,17 @@ function Playing_vibratoTrigger(ton)
     // debug("after controller")
     // debug_Playing()
 
+end function
+
+function Playing_isOverlapping(string, note) -> result
+    result := 0
+    declare i
+
+    for i := 0 to num_elements(Playing.sys)-1
+        if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.string[i] = string and Playing.note[i] # note)
+            result := 1
+        end if
+    end for
 end function
 
 macro Playing_getActiveProperty(#p#, i, #var#, #index_var#)

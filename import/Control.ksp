@@ -43,7 +43,7 @@ function extControl(etype, value)
         case ExtEventType.lh_Vibrato
             PlayModeGlobal.lh_Vibrato := value
 
-        case ExtEventType.vibratoSpeed
+{        case ExtEventType.vibratoSpeed
 
             declare group_index
 
@@ -52,7 +52,7 @@ function extControl(etype, value)
                 ev := Math.epSpeed(Math.V2E, (value + 100) * 10)
                 set_engine_par($ENGINE_PAR_SPEED, ev, group_index, -1, -1)
             end for
-
+}
     end select
 
     uiFeedback(etype, value)
@@ -128,11 +128,50 @@ on controller
 end on
 
 on listener
-    if ($NI_SIGNAL_TYPE = $NI_SIGNAL_TRANSP_STOP)
-        stopAllNotes()
-    end if
+    select $NI_SIGNAL_TYPE
+        case $NI_SIGNAL_TRANSP_STOP
+            stopAllNotes()
+
+        case $NI_SIGNAL_TIMER_MS
+            // happens every 1ms
+            
+            timeOperations()
+
+    end select
 end on
 
 function Control_getAttackSoftness() -> result
     result := UI.attackSoftness * 300
+end function
+
+function timeOperations()
+    declare i
+
+    for i := 0 to num_elements(Playing.sys)-1
+
+        if (Playing.sys[i] # -1 and Playing.ghost[i] = 0)
+
+            if (Playing.fadeIn[i] # -1 and Playing.active[i] = 1)
+// debug2($ENGINE_UPTIME & "::" & Playing.startTime[i] & "::" & Playing.fadeIn[i])
+// debug2($ENGINE_UPTIME - (Playing.startTime[i] + Playing.fadeIn[i]))
+                if ($ENGINE_UPTIME - (Playing.startTime[i] + Playing.fadeIn[i]) >= timeOperationPeriods.fadeIn)
+
+                    declare offset
+                    offset := Funcs.Time_linear(timeOperationValues.fadeIn_start, timeOperationValues.fadeIn_end, timeOperationTotals.fadeIn) * timeOperationPeriods.fadeIn
+                    if (Playing.fadeIn[i] >= timeOperationTotals.fadeIn)
+                        change_vol(Playing.sys[i], timeOperationValues.fadeIn_end, 0) // increasing by 1db
+                        Playing.fadeIn[i] := -1
+                    else 
+                        change_vol(Playing.sys[i], offset, 1) // increasing by 1db
+                        Playing.fadeIn[i] := Playing.fadeIn[i] + timeOperationPeriods.fadeIn
+                    end if
+// debug2(Playing.fadeIn[i] & "::" & get_event_par(Playing.sys[i], $EVENT_PAR_VOLUME))
+
+                end if
+
+            end if
+
+        end if
+
+    end for    
 end function
