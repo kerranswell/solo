@@ -33,7 +33,7 @@ function Playing_getGhostIndex(sys) -> result
     // debug("result " & result)
 end function
 
-function Playing_push(sys, _note, string, fret, active)
+function Playing_push(sys, _note, string, fret, active) -> result
     declare i := 0
 
     while (i < num_elements(Playing.sys) and (Playing.sys[i] # -1 or Playing.ghost[i] = 1)) // looking for first unempty slot which is not ghost note
@@ -50,6 +50,37 @@ function Playing_push(sys, _note, string, fret, active)
 
         Playing_setArts(i)
     end if
+
+    result := i
+
+end function
+
+function Playing_startChildren(i)
+    declare j
+    macro createChild(#p#, #v#)
+        j := Playing_createChild(i)
+        if (j # -1)
+            Playing.#p#[j] := #v# // main feature of this child
+            PlayMode_change(ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
+            Groups_prepare()
+
+            Playing.sys[j] := play_note(Playing.note[j], getVelocity(Playing.string[j], Playing.fret[j]), Control_getAttackSoftness(), -1)
+
+            // volume off
+            change_vol(Playing.sys[j], VOLUME_MIN, 1)
+        end if        
+    end macro
+
+    if (Playing.lh_Vibrato[i] = 0)
+        createChild(lh_Vibrato, 1)
+    end if
+
+    if (Playing.lh_Vibrato[i] = 1)
+        createChild(lh_Vibrato, 0)
+    end if
+
+    // debug2('test')
+    // debug_Playing()
 
 end function
 
@@ -140,7 +171,7 @@ function Playing_resetItemWithChilds(i)
 
     // reset all children notes
     for j := 0 to Globals.maxVoices-1
-        if (Playing.parent[j] = Playing.sys[i])
+        if (Playing.parent[j] = i)
             Playing_resetItem(j)
         end if
     end for
@@ -155,31 +186,41 @@ function Playing_setArts(i)
     Playing.letRing[i] := PlayMode.letRing
 end function
 
-function Playing_vibratoTrigger(on)
+function Playing_vibratoTrigger(ton)
 
-    if (on = 1)
-        declare i
-        declare j
+    macro trigger(#p#, #new_value#, #parent_condition#)
+        declare i // note to be morphed to vibrato
+        declare j // child note to be created and morphed to
         for i := 0 to num_elements(Playing.sys)-1
-            if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.parent[i] = -1 and Playing.lh_Vibrato[i] = 0 and Playing.rh_Muted = 0)
+            if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.parent[i] = -1 and Playing.#p#[i] # #new_value# #parent_condition#)
+                for j := 0 to num_elements(Playing.sys)-1
+                    if (Playing.sys[j] # -1 and Playing.ghost[j] = 0 and Playing.parent[j] = i and Playing.#p#[j] = #new_value#)
 
-                j := Playing_createChild(i)
-                if (j # -1)
-                    // PlayMode_change(ExtEventType.lh_Vibrato, 1)
-                    // velocity := 
-                    // Playing.sys[j] := play_note(Playing.note[j], velocity, offset, -1)
-                end if
+                        // crossfade to sounds
+                        change_vol(Playing.sys[i], VOLUME_MIN, 0)
+                        change_vol(Playing.sys[j], VOLUME_MAX, 0)
 
+                        Playing.active[i] := 0
+                        Playing.active[j] := 1
+
+                    end if
+                end for
             end if
-        end for
-    end if
+        end for        
+    end macro
+
+    trigger(lh_Vibrato, ton, and Playing.rh_Muted[i] = 0)
+
+    // debug("after controller")
+    // debug_Playing()
+
 end function
 
 macro Playing_getActiveProperty(#p#, i, #var#, #index_var#)
     #var# := Playing.#p#[i]
 
     for #index_var# := 0 to num_elements(Playing.active)-1
-        if (Playing.active[#index_var#] = 1 and Playing.parent[#index_var#] = Playing.sys[i])
+        if (Playing.active[#index_var#] = 1 and Playing.parent[#index_var#] = i)
             #var# := Playing.#p#[#index_var#]
         end if
     end for
@@ -189,7 +230,7 @@ macro Playing_setPropertyTree(#p#, i, v, #index_var#)
     Playing.#p#[i] := v
 
     for #index_var# := 0 to num_elements(Playing.#p#)-1
-        if (Playing.parent[#index_var#] = Playing.sys[i])
+        if (Playing.parent[#index_var#] = i)
             Playing.#p#[#index_var#] := v
         end if
     end for

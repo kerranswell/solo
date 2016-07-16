@@ -1,3 +1,10 @@
+function Groups_prepare()
+    resetGroups()
+    setActiveGroups()
+    disallow_group($ALL_GROUPS)
+    allowGroups()        
+end function
+
 function resetGroups
     for i := 0 to Globals.maxGroups-1
         activeGroups[i] := -1

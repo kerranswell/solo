@@ -21,6 +21,7 @@ end on
 on ui_control (UI.debugClear)
     debug_clear()
     debug2_clear()
+
     UI.debugClear := 0
 end on
 
@@ -77,7 +78,8 @@ function uiFeedbackPlayMode
 end function
 
 on controller
-
+// debug("Before CC")
+// debug_Playing()
     select ($CC_NUM)
 
         { Alt Stroke }
@@ -85,21 +87,20 @@ on controller
             if (%CC[$CC_NUM] > 0)
                 PlayModeGlobal.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
                 PlayModeGlobal.altStroke := 1
-                UI.velocityControl := 0
+                UI.pickVelocityControl := 0
             else
                 PlayModeGlobal.pickDown := 1
                 PlayModeGlobal.altStroke := 0
-                UI.velocityControl := 1
+                UI.pickVelocityControl := 1
             end if
 
         { Vibrato Trigger }
         case 21
-            select (%CC[$CC_NUM])
-                case 100 to 127
-                    // Vibrato ON
-                    // Playing_vibratoTrigger(1)
-
-            end select
+            if (in_range(%CC[$CC_NUM], 1, 127))
+                Playing_vibratoTrigger(1)
+            else 
+                Playing_vibratoTrigger(0)
+            end if
 
         { Stop Strings }
         case 22
@@ -121,5 +122,17 @@ on controller
 
     {debug_clear()
     debug_Strings()}
+    // debug("After CC")
+    // debug_Playing()
     uiFeedbackPlayMode()
 end on
+
+on listener
+    if ($NI_SIGNAL_TYPE = $NI_SIGNAL_TRANSP_STOP)
+        stopAllNotes()
+    end if
+end on
+
+function Control_getAttackSoftness() -> result
+    result := UI.attackSoftness * 300
+end function

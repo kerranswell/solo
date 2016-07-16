@@ -9,7 +9,7 @@ function debug_Playing
     // debug_clear()
     for i := 0 to Globals.maxVoices-1
         if (Playing.sys[i] # -1)
-            debug("([" & i & "] s" & Playing.string[i] &"), " & "sys(" & Playing.sys[i] & "), " & "active(" & Playing.active[i] & "), " & "parent(" & Playing.parent[i] & "), " & "ghost(" & Playing.ghost[i] & "), LR(" & Playing.letRing[i] & ")")
+            debug("([" & i & "] s" & Playing.string[i] &"), " & "sys(" & Playing.sys[i] & "), " & "active(" & Playing.active[i] & "), " & "parent(" & Playing.parent[i] & "), " & "ghost(" & Playing.ghost[i] & "), LR(" & Playing.letRing[i] & "), V(" & Playing.lh_Vibrato[i] & ")")
             debug("")            
         end if
     end for

@@ -1,30 +1,29 @@
 function setPlayModeByVelocity(velocity)
 
     PlayMode.lh_Vibrato := 0
-    {PlayMode.altStroke := 0}
     PlayMode.letRing := PlayModeGlobal.letRing
     PlayMode.pickDown := PlayModeGlobal.pickDown
 
     if (in_range(velocity, velocityArtZones.rh_Muted_Down[0], velocityArtZones.rh_Muted_Down[1]))
         PlayMode.rh_Muted := 1
         PlayMode.letRing := 0
-        if (UI.velocityControl = 1)
+        if (UI.pickVelocityControl = 1)
             PlayMode.pickDown := 1
         end if
     else if (in_range(velocity, velocityArtZones.rh_Muted_Up[0], velocityArtZones.rh_Muted_Up[1]))
         PlayMode.rh_Muted := 1
         PlayMode.letRing := 0
-        if (UI.velocityControl = 1)
+        if (UI.pickVelocityControl = 1)
             PlayMode.pickDown := 0
         end if
     else if (in_range(velocity, velocityArtZones.rh_Opened_Down[0], velocityArtZones.rh_Opened_Down[1]))
         PlayMode.rh_Muted := 0
-        if (UI.velocityControl = 1)
+        if (UI.pickVelocityControl = 1)
             PlayMode.pickDown := 1
         end if
     else if (in_range(velocity, velocityArtZones.rh_Opened_Up[0], velocityArtZones.rh_Opened_Up[1]))
         PlayMode.rh_Muted := 0
-        if (UI.velocityControl = 1)
+        if (UI.pickVelocityControl = 1)
             PlayMode.pickDown := 0
         end if
     else if (in_range(velocity, velocityArtZones.lh_Vibrato[0], velocityArtZones.lh_Vibrato[1]))
@@ -34,13 +33,13 @@ function setPlayModeByVelocity(velocity)
     else if (in_range(velocity, velocityArtZones.letRing_Up[0], velocityArtZones.letRing_Up[1]))
         PlayMode.letRing := 1
         PlayMode.rh_Muted := 0
-        if (UI.velocityControl = 1)
+        if (UI.pickVelocityControl = 1)
             PlayMode.pickDown := 0
         end if
     else if (in_range(velocity, velocityArtZones.letRing_Down[0], velocityArtZones.letRing_Down[1]))
         PlayMode.letRing := 1
         PlayMode.rh_Muted := 0
-        if (UI.velocityControl = 1)
+        if (UI.pickVelocityControl = 1)
             PlayMode.pickDown := 1
         end if
 }
@@ -50,10 +49,47 @@ function setPlayModeByVelocity(velocity)
 
 end function
 
+function PlayMode_getVelocityByPlayMode -> result
+
+    result := velocityArtZones.rh_Opened_Down[0]
+
+    if (PlayMode.rh_Muted = 1)
+        if (PlayMode.pickDown = 1)
+            result := velocityArtZones.rh_Muted_Down[0]
+        else 
+            result := velocityArtZones.rh_Muted_Up[0]
+        end if
+    end if
+
+    if (PlayMode.rh_Muted = 0)
+        if (PlayMode.pickDown = 1)
+            result := velocityArtZones.rh_Opened_Down[0]
+        else 
+            result := velocityArtZones.rh_Opened_Up[0]
+        end if
+    end if
+
+    if (PlayMode.lh_Vibrato = 1)
+        result := velocityArtZones.lh_Vibrato[0]
+    end if
+
+end function
+
 function PlayMode_change(type, val)
 
     select (type)
 
+        // vibrato
+        case ExtEventType.rh_Muted
+            
+            if (val = 1)
+                PlayMode.lh_Vibrato := 0
+            end if
+
+            PlayMode.rh_Muted := val
+
+
+        // vibrato
         case ExtEventType.lh_Vibrato
             
             if (val = 1)
@@ -63,6 +99,7 @@ function PlayMode_change(type, val)
             PlayMode.lh_Vibrato := val
 
 
+        // let ring
         case ExtEventType.letRing
 
             if (val = 1)
@@ -79,6 +116,7 @@ function PlayModeGlobal_change(type, val)
 
     select (type)
 
+        // vibrato
         case ExtEventType.lh_Vibrato
             
             if (val = 1)
@@ -88,6 +126,7 @@ function PlayModeGlobal_change(type, val)
             PlayModeGlobal.lh_Vibrato := val
 
 
+        // let ring
         case ExtEventType.letRing
 
             if (val = 1)

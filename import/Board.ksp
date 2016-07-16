@@ -5,6 +5,11 @@ function getFret(n) -> result
     result := notes2frets[n]
 end function
 
+function getVelocity(string, fret) -> result
+    result := (string-1) * 3 + 1 + fret / 12
+end function
+
+
 function fillBoardTable()
     for i := 0 to 127
         notes2strings[i] := 0
@@ -37,12 +42,6 @@ function fillBoardTable()
     notes2frets[_A(3)] := 5
     notes2frets[_C(4)] := 8
 end function
-
-on listener
-    if ($NI_SIGNAL_TYPE = $NI_SIGNAL_TRANSP_STOP)
-        stopAllNotes()
-    end if
-end on
 
 
 { ***** Note Code, Ha-ha ****** }
