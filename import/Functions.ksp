@@ -25,3 +25,13 @@ end function
 function Time_getCurrentTime -> result
 	result := $ENGINE_UPTIME
 end function
+
+function smooth_array(array, smoothness)
+	declare i
+	declare j
+	for i := 1 to smoothness
+		for j := 1 to num_elements(array)-2
+			array[j] := (array[j-1] + array[j] + array[j+1]) / 3
+		end for
+	end for
+end function
