@@ -18,6 +18,10 @@ on ui_control (UI.vibratoSpeed)
     extControl(ExtEventType.vibratoSpeed, UI.vibratoSpeed)
 end on
 
+on ui_control (UI.vibratoDepth)
+    extControl(ExtEventType.vibratoDepth, UI.vibratoDepth)
+end on
+
 on ui_control (UI.debugClear)
     debug_clear()
     debug2_clear()
@@ -28,6 +32,7 @@ end on
 function extControl(etype, value)
 
     declare ev
+    declare i
 
     select etype
 
@@ -42,6 +47,30 @@ function extControl(etype, value)
 
         case ExtEventType.lh_Vibrato
             PlayModeGlobal.lh_Vibrato := value
+
+        case ExtEventType.vibratoSpeed
+            PlayModeGlobal.vibratoSpeed := value
+
+        case ExtEventType.vibratoDepth
+            if (PlayModeGlobal.vibratoDepth = 0 and value > 0)
+                // starting vibrato cycle
+                for i := 0 to num_elements(Playing.sys)-1
+                    if (Playing.sys[i] # -1 and Playing.ghost[i] = 0)
+                        Playing_startVibratoCycle(i)
+                    end if
+                end for
+            else if (PlayModeGlobal.vibratoDepth > 0 and value = 0)
+                // ending vibrato cycle
+                for i := 0 to num_elements(Playing.sys)-1
+                    if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.to_vibrato[i] # -1)
+                        Playing.to_vibrato[i] := -1
+                        change_tune(Playing.sys[i], 0, 0)
+                    end if
+                end for                
+            end if
+
+            PlayModeGlobal.vibratoDepth := value
+
 
 {        case ExtEventType.vibratoSpeed
 
@@ -67,6 +96,10 @@ function uiFeedback(etype, value)
         UI.altStroke := value
     else if (etype = ExtEventType.lh_Vibrato and UI.lh_Vibrato # value)
         UI.lh_Vibrato := value
+    else if (etype = ExtEventType.vibratoSpeed)
+        UI.vibratoSpeed := value
+    else if (etype = ExtEventType.vibratoDepth)
+        UI.vibratoDepth := value
     end if
 end function
 
@@ -118,6 +151,14 @@ on controller
                 PlayModeGlobal_change(ExtEventType.letRing, 1)
             end if
 
+        { Vibrato Speed }
+        case 24
+            extControl(ExtEventType.vibratoSpeed, %CC[$CC_NUM])
+
+        { Vibrato Depth }
+        case 25
+            extControl(ExtEventType.vibratoDepth, %CC[$CC_NUM])
+
     end select
 
     {debug_clear()
@@ -146,29 +187,50 @@ end function
 
 function timeOperations()
     declare i
+    declare now := Funcs.Time_getCurrentTime() // ms
 
     for i := 0 to num_elements(Playing.sys)-1
 
         if (Playing.sys[i] # -1 and Playing.ghost[i] = 0)
+{
+            if (Playing.to_fadeIn[i] # -1 and Playing.active[i] = 1)
 
-            if (Playing.fadeIn[i] # -1 and Playing.active[i] = 1)
-// debug2($ENGINE_UPTIME & "::" & Playing.startTime[i] & "::" & Playing.fadeIn[i])
-// debug2($ENGINE_UPTIME - (Playing.startTime[i] + Playing.fadeIn[i]))
-                if ($ENGINE_UPTIME - (Playing.startTime[i] + Playing.fadeIn[i]) >= timeOperationPeriods.fadeIn)
+                if (now - (Playing.startTime[i] + Playing.to_fadeIn[i]) >= timeOperationPeriods.fadeIn)
 
                     declare offset
                     offset := Funcs.Time_linear(timeOperationValues.fadeIn_start, timeOperationValues.fadeIn_end, timeOperationTotals.fadeIn) * timeOperationPeriods.fadeIn
-                    if (Playing.fadeIn[i] >= timeOperationTotals.fadeIn)
+                    if (Playing.to_fadeIn[i] >= timeOperationTotals.fadeIn)
                         change_vol(Playing.sys[i], timeOperationValues.fadeIn_end, 0) // increasing by 1db
-                        Playing.fadeIn[i] := -1
+                        Playing.to_fadeIn[i] := -1
                     else 
                         change_vol(Playing.sys[i], offset, 1) // increasing by 1db
-                        Playing.fadeIn[i] := Playing.fadeIn[i] + timeOperationPeriods.fadeIn
+                        Playing.to_fadeIn[i] := Playing.to_fadeIn[i] + timeOperationPeriods.fadeIn
                     end if
-// debug2(Playing.fadeIn[i] & "::" & get_event_par(Playing.sys[i], $EVENT_PAR_VOLUME))
 
                 end if
 
+            end if
+}
+
+            if (Playing.to_vibrato[i] # -1)
+                if (now - (Playing.startTime[i] + Playing.to_vibrato[i]) >= timeOperationPeriods.vibrato)
+
+                    declare val
+                    declare speed := PlayModeGlobal.vibratoSpeed
+
+                    if (speed = 0)
+                        val := 0
+                    else 
+                        declare alpha := Playing.to_vibrato[i] * (9000 / (101 - speed)) // 9000 because of degree type; 500
+                        declare a := (timeOperationValues.vibratoDepthMax / 100) * PlayModeGlobal.vibratoDepth
+                        val := Math.Sin(alpha)
+                        val := val * (a / 10000) // sin returns from -10^4 to 10^4
+                    end if                    
+
+                    change_tune(Playing.sys[i], val, 0)
+                    Playing.to_vibrato[i] := Playing.to_vibrato[i] + timeOperationPeriods.vibrato
+
+                end if
             end if
 
         end if

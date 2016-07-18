@@ -21,3 +21,7 @@ end function
 function Time_linear(v1, v2, time) -> result
 	result := (v2 - v1) / time
 end function
+
+function Time_getCurrentTime -> result
+	result := $ENGINE_UPTIME
+end function

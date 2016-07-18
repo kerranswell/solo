@@ -1,3 +1,8 @@
+function Playing_startVibratoCycle(i)
+    if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.rh_Muted[i] = 0)
+        Playing.to_vibrato[i] := 0
+    end if
+end function
 
 function Playing_timeOperationsStartWithChilds(i)
     declare j
@@ -9,13 +14,17 @@ function Playing_timeOperationsStartWithChilds(i)
 end function
 
 function Playing_timeOperationsStart(i)
-    Playing.startTime[i] := $ENGINE_UPTIME
+    Playing.startTime[i] := Funcs.Time_getCurrentTime()
 
     if (PlayMode.legato = 1)
         // starting fade-in operation
-        // Playing.fadeIn[i] := 0
+        // Playing.to_fadeIn[i] := 0
         // change_vol(Playing.sys[i], VOLUME_MIN, 0)
         fade_in(Playing.sys[i], timeOperationTotals.fadeIn * 1000)
+    end if
+
+    if (PlayModeGlobal.vibratoDepth > 0)
+        Playing_startVibratoCycle(i)
     end if
 
 end function
@@ -187,7 +196,8 @@ function Playing_resetItem(i)
     Playing.active[i] := 0
 
     Playing.startTime[i] := -1
-    Playing.fadeIn[i] := -1
+    Playing.to_fadeIn[i] := -1
+    Playing.to_vibrato[i] := -1
 end function
 
 function Playing_resetItemWithChilds(i)
@@ -246,7 +256,10 @@ function Playing_isOverlapping(string, note) -> result
 
     for i := 0 to num_elements(Playing.sys)-1
         if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.string[i] = string and Playing.note[i] # note)
-            result := 1
+            Playing_getActiveProperty(letRing, i, tmp2, tmp)
+            if (tmp2 = 0)
+                result := 1
+            end if            
         end if
     end for
 end function

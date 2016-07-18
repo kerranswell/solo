@@ -40,7 +40,7 @@ function debug_Strings(legato)
     declare @rh_Muted
     declare @lh_Vibrato
 
-    // debug2_clear()
+    debug2_clear()
 
     for i := 0 to Globals.maxVoices-1
         if (Playing.string[i] > 0 and Playing.active[i] = 1 and Playing.ghost[i] = 0)
@@ -75,7 +75,7 @@ function debug_Strings(legato)
             debug2("n" & Playing.note[i] & "; string " & Playing.string[i] & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg("&legato&")")
         end if
     end for
-    debug2("---------")  
+    // debug2("---------")  
 end function
 
 function debug(s)

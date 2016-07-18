@@ -23,8 +23,8 @@ function allowGroups
     end for
 
     declare r
-    // r := random(min, max)
-    r := min
+    r := random(min, max)
+    // r := min
     Globals.lastGroupIndex := activeGroups[r]
     allow_group(Globals.lastGroupIndex)
 end function
@@ -53,6 +53,9 @@ function formGroupName() -> result
     declare !rh_muted[2]
     !rh_muted[0] := "o"
     !rh_muted[1] := "m"
+    if (UI.softMute = 0)
+        !rh_muted[1] := !rh_muted[1] & "2"
+    end if
 
     declare !pickDown[2]
     !pickDown[0] := "_pu"
