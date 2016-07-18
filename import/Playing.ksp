@@ -1,3 +1,9 @@
+function Playing_startPitchTableCycle(i, string)
+    if ((Playing.string[i] = string or string = SConst.stringCount+1) and Playing.to_pitchTable[i] = -1)
+        Playing.to_pitchTable[i] := 0
+    end if
+end function
+
 function Playing_startVibratoCycle(i)
     if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.rh_Muted[i] = 0)
         Playing.to_vibrato[i] := 0
@@ -198,6 +204,7 @@ function Playing_resetItem(i)
     Playing.startTime[i] := -1
     Playing.to_fadeIn[i] := -1
     Playing.to_vibrato[i] := -1
+    Playing.to_pitchTable[i] := -1
 end function
 
 function Playing_resetItemWithChilds(i)
