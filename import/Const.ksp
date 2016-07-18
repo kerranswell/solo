@@ -1,0 +1,4 @@
+function on_init
+    declare const pitchTableColumnCount := 128
+end function
+
