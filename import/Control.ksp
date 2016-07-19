@@ -257,31 +257,32 @@ function timeOperations()
             end if
 
             if (Playing.to_pitchTable[i] # -1)
-                declare columnStep := PitchTable.timeLength[PGS.pitchTableIndex] * 100 / SConst.pitchTableColumnCount // time length is in range 1-100, which is 0.1-10 seconds. In order to get milliseconds - multiply by 100
-                if (columnStep < timeOperationPeriods.pitchTable)
-                    columnStep := timeOperationPeriods.pitchTable // columns time length (columnStep) can not be less than timer step
+                declare columnTime := PitchTable.timeLength[PGS.pitchTableIndex] * 100 / SConst.pitchTableColumnCount // time length is in range 1-100, which is 0.1-10 seconds. In order to get milliseconds - multiply by 100
+                if (columnTime < timeOperationPeriods.pitchTable)
+                    columnTime := timeOperationPeriods.pitchTable // columns time length (columnTime) can not be less than timer step
                 end if
 
                 if (now - (Playing.startTime[i] + Playing.to_pitchTable[i]) >= timeOperationPeriods.pitchTable)
                     declare val
-                    declare val_prev := 0
-                    declare column_index := Playing.to_pitchTable[i] / columnStep
+                    declare val_next := 0
+                    declare column_index := Playing.to_pitchTable[i] / columnTime
 
                     if (column_index >= SConst.pitchTableColumnCount)
                         Playing.to_pitchTable[i] := -1 // time operation finished
                     else 
                         val := PitchTable.columns[PGS.pitchTableIndex, column_index]
-                        if (column_index > 0)
-                            val_prev := PitchTable.columns[PGS.pitchTableIndex, column_index-1]
-                        end if
-// message(columnStep)
-                        // val := PitchTable.pitchRange * ((val - val_prev) / 1000 {ui column max value} ) * 1000 {convert to millicents} * timeOperationPeriods.pitchTable {timestep} / columnStep {count of time steps between columns}
-                        // if (Playing.to_pitchTable[i] / (columnStep * (column_index+1)) > 1)
-                        // else 
-                            val := PitchTable.pitchRange[PGS.pitchTableIndex] * (val - val_prev) * timeOperationPeriods.pitchTable / columnStep
-                        // end if
 
-                        change_tune(Playing.sys[i], val, 1)
+                        if (column_index < SConst.pitchTableColumnCount-1)
+                            val_next := PitchTable.columns[PGS.pitchTableIndex, column_index+1]
+                        end if
+
+                        // val := PitchTable.pitchRange * ((val_next - val) / 1000 {ui column max value} ) * 1000 {convert to millicents} * timeOperationPeriods.pitchTable {timestep} / columnTime {count of time steps between columns}
+                        declare insideColumnIndex
+                        insideColumnIndex := ( Playing.to_pitchTable[i] - columnTime * column_index) / timeOperationPeriods.pitchTable 
+                        val := val + PitchTable.pitchRange[PGS.pitchTableIndex] * (val_next - val) * (timeOperationPeriods.pitchTable / columnTime) * insideColumnIndex
+
+                        // change_tune(Playing.sys[i], val, 1)
+                        change_tune(Playing.sys[i], val, 0)
                         Playing.to_pitchTable[i] := Playing.to_pitchTable[i] + timeOperationPeriods.pitchTable
                     end if
                 end if                
