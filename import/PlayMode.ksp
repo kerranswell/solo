@@ -21,6 +21,7 @@ macro PlayMode_on_init
 
     PlayMode_initPlayMode(playMode)
     PlayMode_initPlayMode(playModeGlobal)
+    playModeGlobal.slideIn := 1
 
 end macro
 
@@ -40,6 +41,24 @@ macro PlayMode_initPlayMode(#p#)
     #p#.vibratoDepth := 0
 
     #p#.artCode := 0
+end macro
+
+macro PlayMode_copy(#p#, #p2#)
+    #p#.rh_Muted := #p2#.rh_Muted
+    #p#.pickDown := #p2#.pickDown
+    #p#.lh_Vibrato := #p2#.lh_Vibrato
+    #p#.letRing := #p2#.letRing
+    #p#.legato := #p2#.legato
+    #p#.offset := #p2#.offset
+
+    #p#.slideIn := #p2#.slideIn
+    #p#.slideOut := #p2#.slideOut
+
+    #p#.altStroke := #p2#.altStroke
+    #p#.vibratoSpeed := #p2#.vibratoSpeed
+    #p#.vibratoDepth := #p2#.vibratoDepth
+
+    #p#.artCode := #p2#.artCode
 end macro
 
 function setPlayMode(velocity, note, string)

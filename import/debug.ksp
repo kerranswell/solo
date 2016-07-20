@@ -9,7 +9,7 @@ function debug_Playing
     // debug_clear()
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].sys # -1)
-            debug("([" & i & "] s" & Playing[i].string &"), " & "sys(" & Playing[i].sys & "), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), " & "ghost(" & Playing[i].ghost & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & ")")
+            debug("([" & i & "] s" & Playing[i].string &"), " & "sys(" & Playing[i].sys & "), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), " & "ghost(" & Playing[i].ghost & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &")")
             debug("")            
         end if
     end for
@@ -72,7 +72,7 @@ function debug_Strings(legato)
                 @pickDown := " dn"
             end if
 
-            debug2("n" & Playing[i].note & "; string " & Playing[i].string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg("&legato&")")
+            debug2("n" & Playing[i].note & "; string " & Playing[i].string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg("&legato&") si(" & Playing[i].playMode.slideIn & ")")
         end if
     end for
     debug2("---------")  

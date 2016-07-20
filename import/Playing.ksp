@@ -131,7 +131,7 @@ function Playing_push(sys, _note, string, fret, active) -> result
 
         Playing[i].active := active
 
-        Playing_setArts(i)
+        PlayMode_copy(Playing[i].playMode, playMode)
     end if
 
     result := i
@@ -223,10 +223,7 @@ function Playing_copySlot(i,j)
     copyProp(string)
     copyProp(fret)
 
-    copyProp(playMode.letRing)
-    copyProp(playMode.rh_Muted)
-    copyProp(playMode.pickDown)
-    copyProp(playMode.lh_Vibrato)
+    PlayMode_copy(Playing[j].playMode, Playing[i].playMode)
 
     copyProp(parent)
     copyProp(active)
@@ -282,13 +279,6 @@ function Playing_resetItemWithChilds(i)
     end for
 
     Playing_resetItem(i)
-end function
-
-function Playing_setArts(i)
-    Playing[i].playMode.rh_Muted := playMode.rh_Muted
-    Playing[i].playMode.pickDown := playMode.pickDown
-    Playing[i].playMode.lh_Vibrato := playMode.lh_Vibrato
-    Playing[i].playMode.letRing := playMode.letRing
 end function
 
 function Playing_vibratoTrigger(ton)
