@@ -1,0 +1,9 @@
+macro PitchTable_on_init
+    struct _PitchTable
+        declare columns[Const.pitchTableColumnCount]
+        declare timeLength
+        declare pitchRange
+    end struct
+
+    declare &_PitchTable pitchTables[Const.pitchTableCount]
+end macro

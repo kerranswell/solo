@@ -1,15 +1,15 @@
 { ******* Debugging ******** }
 
 function debug_PlayMode
-    debug("rh_Muted(" & PlayMode.rh_Muted & "), " & "lh_Vibrato(" & PlayMode.lh_Vibrato & "), " & "pickDown(" & PlayMode.pickDown & "), " & "letRing(" & PlayMode.letRing & "), " )
+    debug("rh_Muted(" & playMode.rh_Muted & "), " & "lh_Vibrato(" & playMode.lh_Vibrato & "), " & "pickDown(" & playMode.pickDown & "), " & "letRing(" & playMode.letRing & "), " )
     debug("---------")
 end function
 
 function debug_Playing
     // debug_clear()
     for i := 0 to Globals.maxVoices-1
-        if (Playing.sys[i] # -1)
-            debug("([" & i & "] s" & Playing.string[i] &"), " & "sys(" & Playing.sys[i] & "), " & "active(" & Playing.active[i] & "), " & "parent(" & Playing.parent[i] & "), " & "ghost(" & Playing.ghost[i] & "), LR(" & Playing.letRing[i] & "), V(" & Playing.lh_Vibrato[i] & ")")
+        if (Playing[i].sys # -1)
+            debug("([" & i & "] s" & Playing[i].string &"), " & "sys(" & Playing[i].sys & "), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), " & "ghost(" & Playing[i].ghost & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & ")")
             debug("")            
         end if
     end for
@@ -40,39 +40,39 @@ function debug_Strings(legato)
     declare @rh_Muted
     declare @lh_Vibrato
 
-    debug2_clear()
+    // debug2_clear()
 
     for i := 0 to Globals.maxVoices-1
-        if (Playing.string[i] > 0 and Playing.active[i] = 1 and Playing.ghost[i] = 0)
+        if (Playing[i].string > 0 and Playing[i].active = 1 and Playing[i].ghost = 0)
 
-            if (Playing.pickDown[i] = 0)
+            if (Playing[i].playMode.pickDown = 0)
                 @pickDown := " up"
             else
                 @pickDown := " dn"
             end if
 
-            if (Playing.letRing[i] = 1)
+            if (Playing[i].playMode.letRing = 1)
                 @letRing := " LetRing"
             else
                 @letRing := ""
             end if
 
-            if (Playing.rh_Muted[i] = 1)
+            if (Playing[i].playMode.rh_Muted = 1)
                 @rh_Muted := " P.M."
             else
                 @rh_Muted := ""
             end if
 
-            if (Playing.lh_Vibrato[i] = 0)
+            if (Playing[i].playMode.lh_Vibrato = 0)
                 @lh_Vibrato := ""
             else
-                @lh_Vibrato := " Vib" & Playing.lh_Vibrato[i]
+                @lh_Vibrato := " Vib" & Playing[i].playMode.lh_Vibrato
                 @rh_Muted := ""
                 @letRing := ""
                 @pickDown := " dn"
             end if
 
-            debug2("n" & Playing.note[i] & "; string " & Playing.string[i] & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg("&legato&")")
+            debug2("n" & Playing[i].note & "; string " & Playing[i].string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg("&legato&")")
         end if
     end for
     // debug2("---------")  
@@ -95,6 +95,6 @@ function debug2_clear
 end function
 
 function debug_PitchTable
-    debug2("PT Time Length: " & PitchTable.timeLength[PGS.pitchTableIndex])
-    debug2("PT Pitch Range: " & PitchTable.pitchRange[PGS.pitchTableIndex])
+    debug2("PT Time Length: " & pitchTables[Globals.pitchTableIndex].timeLength)
+    debug2("PT Pitch Range: " & pitchTables[Globals.pitchTableIndex].pitchRange)
 end function

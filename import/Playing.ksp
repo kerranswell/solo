@@ -1,35 +1,78 @@
+
+macro Playing_on_init
+
+    // stores operation time start
+    struct _PlayingTimeOperation
+        declare fadeIn
+        declare vibrato
+        declare pitchTable
+    end struct
+
+    struct _Playing
+
+        declare sys // EVENT_ID
+        declare note // actual note
+
+        declare string // string on the guitar
+        declare fret // fret taken
+
+        declare &_PlayMode playMode
+
+        //  if # -1 than this note is a child note, connected to first taken note 
+        // (used when triggering vibrato or slide while parent note is sounding)
+        declare parent
+
+        declare active // when several notes connected, one of them is active, i.e. sounds right now
+
+        // when the note stops because new the same note on the same string is triggered, first one is marked as ghost (and all its children)
+        // that is done, because on release we need to delineate old note from the new one or both will be released just because old was stopped 
+        // ghost notes live till next release event and go away peacefully and silently while noone sees it.
+        declare ghost
+
+        { Time operations }
+        declare startTime
+
+        declare &_PlayingTimeOperation timeOp
+    end struct
+
+    declare &_Playing Playing[Globals.maxVoices]
+    Playing_resetAll()
+
+end macro
+
+
 function Playing_startPitchTableCycle(i, string)
-    if ((Playing.string[i] = string or string = SConst.stringCount+1) and Playing.to_pitchTable[i] = -1)
-        Playing.to_pitchTable[i] := Funcs.Time_getCurrentTime()
+    if ((Playing[i].string = string or string = Const.stringCount+1) and Playing[i].timeOp.pitchTable = -1)
+        Playing[i].timeOp.pitchTable := Funcs.Time_getCurrentTime()
     end if
 end function
 
 function Playing_startVibratoCycle(i)
-    if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.rh_Muted[i] = 0)
-        Playing.to_vibrato[i] := 0
+    if (Playing[i].sys # -1 and Playing[i].ghost = 0 and Playing[i].playMode.rh_Muted = 0)
+        Playing[i].timeOp.vibrato := 0
     end if
 end function
 
 function Playing_timeOperationsStartWithChilds(i)
     declare j
-    for j := 0 to num_elements(Playing.sys)-1
-        if (Playing.sys[j] # -1 and Playing.parent[j] = i or i = j)
+    for j := 0 to Globals.maxVoices-1
+        if (Playing[j].sys # -1 and Playing[j].parent = i or i = j)
             Playing_timeOperationsStart(j)
         end if
     end for
 end function
 
 function Playing_timeOperationsStart(i)
-    Playing.startTime[i] := Funcs.Time_getCurrentTime()
+    Playing[i].startTime := Funcs.Time_getCurrentTime()
 
-    if (PlayMode.legato = 1)
+    if (playMode.legato = 1)
         // starting fade-in operation
-        // Playing.to_fadeIn[i] := 0
-        // change_vol(Playing.sys[i], VOLUME_MIN, 0)
-        fade_in(Playing.sys[i], timeOperationTotals.fadeIn * 1000)
+        // Playing[i].timeOp.fadeIn := 0
+        // change_vol(Playing[i].sys, VOLUME_MIN, 0)
+        fade_in(Playing[i].sys, timeOperationTotals.fadeIn * 1000)
     end if
 
-    if (PlayModeGlobal.vibratoDepth > 0)
+    if (playModeGlobal.vibratoDepth > 0)
         Playing_startVibratoCycle(i)
     end if
 
@@ -39,8 +82,8 @@ function Playing_getIndex(_note, string) -> result
     declare i := 0
     declare break := 0
 
-    while (i < num_elements(Playing.sys) and break = 0)
-        if (Playing.note[i] = _note and (Playing.string[i] = string or string = 0) and Playing.parent[i] = -1)
+    while (i < Globals.maxVoices and break = 0)
+        if (Playing[i].note = _note and (Playing[i].string = string or string = 0) and Playing[i].parent = -1)
             break := 1 {found note, index will be current i. Thus before i++ we have to do i--}
             dec(i)
         end if
@@ -49,7 +92,7 @@ function Playing_getIndex(_note, string) -> result
     end while
 
     result := -1
-    if (i < num_elements(Playing.sys))
+    if (i < Globals.maxVoices)
         result := i
     end if
 end function
@@ -58,12 +101,12 @@ function Playing_getGhostIndex(sys) -> result
     declare i := 0
     // debug("cur_sys " & sys)
     // debug_Playing()
-    while (i < num_elements(Playing.sys) and (Playing.sys[i] # sys or Playing.ghost[i] # 1 or Playing.parent[i] # -1))
+    while (i < Globals.maxVoices and (Playing[i].sys # sys or Playing[i].ghost # 1 or Playing[i].parent # -1))
         inc(i)
     end while
 
     result := -1
-    if (i < num_elements(Playing.sys))
+    if (i < Globals.maxVoices)
         result := i
     end if
     // debug("result " & result)
@@ -72,17 +115,17 @@ end function
 function Playing_push(sys, _note, string, fret, active) -> result
     declare i := 0
 
-    while (i < num_elements(Playing.sys) and (Playing.sys[i] # -1 or Playing.ghost[i] = 1)) // looking for first unempty slot which is not ghost note
+    while (i < Globals.maxVoices and (Playing[i].sys # -1 or Playing[i].ghost = 1)) // looking for first unempty slot which is not ghost note
         inc(i)
     end while
 
-    if (i < num_elements(Playing.sys))
-        Playing.sys[i] := sys
-        Playing.note[i] := _note
-        Playing.string[i] := string
-        Playing.fret[i] := fret
+    if (i < Globals.maxVoices)
+        Playing[i].sys := sys
+        Playing[i].note := _note
+        Playing[i].string := string
+        Playing[i].fret := fret
 
-        Playing.active[i] := active
+        Playing[i].active := active
 
         Playing_setArts(i)
     end if
@@ -96,22 +139,22 @@ function Playing_startChildren(i)
     macro createChild(#p#, #v#)
         j := Playing_createChild(i)
         if (j # -1)
-            Playing.#p#[j] := #v# // main feature of this child
+            Playing[j].#p# := #v# // main feature of this child
             PlayMode_change(ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
             Groups_prepare()
 
-            Playing.sys[j] := play_note(Playing.note[j], getVelocity(Playing.string[j], Playing.fret[j]), Control_getAttackSoftness(), -1)
+            Playing[j].sys := play_note(Playing[j].note, getVelocity(Playing[j].string, Playing[j].fret), Control_getAttackSoftness(), -1)
 
             // volume off
-            change_vol(Playing.sys[j], VOLUME_MIN, 1)
+            change_vol(Playing[j].sys, VOLUME_MIN, 1)
         end if        
     end macro
 {
-    if (Playing.lh_Vibrato[i] = 0)
+    if (Playing[i].playMode.lh_Vibrato = 0)
         createChild(lh_Vibrato, 1)
     end if
 
-    if (Playing.lh_Vibrato[i] = 1)
+    if (Playing[i].playMode.lh_Vibrato = 1)
         createChild(lh_Vibrato, 0)
     end if
 }
@@ -122,12 +165,12 @@ end function
 
 function Playing_getFreeSlotIndex -> result
     declare i := 0
-    while (i < num_elements(Playing.sys) and Playing.sys[i] # -1)
+    while (i < Globals.maxVoices and Playing[i].sys # -1)
         inc(i)
     end while
 
     result := -1
-    if (i < num_elements(Playing.sys))
+    if (i < Globals.maxVoices)
         result := i
     end if
 end function
@@ -139,8 +182,8 @@ function Playing_createChild(i) -> result
     if (j # -1)
         Playing_copySlot(i,j)
 
-        Playing.parent[j] := i
-        Playing.active[j] := 0
+        Playing[j].parent := i
+        Playing[j].active := 0
     else 
         message(@MSG_MAX_VOICE_REACHED)
     end if
@@ -151,7 +194,7 @@ end function
 function Playing_copySlot(i,j)
 
     macro copyProp(#p#)
-        Playing.#p#[j] := Playing.#p#[i]
+        Playing[j].#p# := Playing[i].#p#
     end macro
 
     copyProp(sys)
@@ -160,10 +203,10 @@ function Playing_copySlot(i,j)
     copyProp(string)
     copyProp(fret)
 
-    copyProp(letRing)
-    copyProp(rh_Muted)
-    copyProp(pickDown)
-    copyProp(lh_Vibrato)
+    copyProp(playMode.letRing)
+    copyProp(playMode.rh_Muted)
+    copyProp(playMode.pickDown)
+    copyProp(playMode.lh_Vibrato)
 
     copyProp(parent)
     copyProp(active)
@@ -174,37 +217,38 @@ end function
 
 function Playing_remove(_note, string)
     declare i := 0
-    while (i < num_elements(Playing.sys) and (Playing.note[i] # _note or Playing.string[i] # string))
+    while (i < Globals.maxVoices and (Playing[i].note # _note or Playing[i].string # string))
         inc(i)
     end while
 
-    if (i < num_elements(Playing.sys))
+    if (i < Globals.maxVoices)
         Playing_resetItem(i)
     end if
 
 end function
 
 function Playing_resetAll
-    for i := 0 to num_elements(Playing.sys)-1
+    for i := 0 to Globals.maxVoices-1
         Playing_resetItem(i)            
     end for
 end function
 
 function Playing_resetItem(i)
-    Playing.note[i] := -1
-    Playing.sys[i] := -1
-    Playing.string[i] := -1
-    Playing.fret[i] := -1
-    Playing.letRing[i] := 0
+    Playing[i].note := -1
+    Playing[i].sys := -1
+    Playing[i].string := -1
+    Playing[i].fret := -1
+    // Playing[i].playMode.letRing := 0
+    PlayMode_initPlayMode(Playing[i].playMode)
 
-    Playing.ghost[i] := 0
-    Playing.parent[i] := -1
-    Playing.active[i] := 0
+    Playing[i].ghost := 0
+    Playing[i].parent := -1
+    Playing[i].active := 0
 
-    Playing.startTime[i] := -1
-    Playing.to_fadeIn[i] := -1
-    Playing.to_vibrato[i] := -1
-    Playing.to_pitchTable[i] := -1
+    Playing[i].startTime := -1
+    Playing[i].timeOp.fadeIn := -1
+    Playing[i].timeOp.vibrato := -1
+    Playing[i].timeOp.pitchTable := -1
 end function
 
 function Playing_resetItemWithChilds(i)
@@ -212,7 +256,7 @@ function Playing_resetItemWithChilds(i)
 
     // reset all children notes
     for j := 0 to Globals.maxVoices-1
-        if (Playing.parent[j] = i)
+        if (Playing[j].parent = i)
             Playing_resetItem(j)
         end if
     end for
@@ -221,10 +265,10 @@ function Playing_resetItemWithChilds(i)
 end function
 
 function Playing_setArts(i)
-    Playing.rh_Muted[i] := PlayMode.rh_Muted
-    Playing.pickDown[i] := PlayMode.pickDown
-    Playing.lh_Vibrato[i] := PlayMode.lh_Vibrato
-    Playing.letRing[i] := PlayMode.letRing
+    Playing[i].playMode.rh_Muted := playMode.rh_Muted
+    Playing[i].playMode.pickDown := playMode.pickDown
+    Playing[i].playMode.lh_Vibrato := playMode.lh_Vibrato
+    Playing[i].playMode.letRing := playMode.letRing
 end function
 
 function Playing_vibratoTrigger(ton)
@@ -232,17 +276,17 @@ function Playing_vibratoTrigger(ton)
     macro trigger(#p#, #new_value#, #parent_condition#)
         declare i // note to be morphed to vibrato
         declare j // child note to be created and morphed to
-        for i := 0 to num_elements(Playing.sys)-1
-            if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.parent[i] = -1 and Playing.#p#[i] # #new_value# #parent_condition#)
-                for j := 0 to num_elements(Playing.sys)-1
-                    if (Playing.sys[j] # -1 and Playing.ghost[j] = 0 and Playing.parent[j] = i and Playing.#p#[j] = #new_value#)
+        for i := 0 to Globals.maxVoices-1
+            if (Playing[i].sys # -1 and Playing[i].ghost = 0 and Playing[i].parent = -1 and Playing[i].#p# # #new_value# #parent_condition#)
+                for j := 0 to Globals.maxVoices-1
+                    if (Playing[j].sys # -1 and Playing[j].ghost = 0 and Playing[j].parent = i and Playing[j].#p# = #new_value#)
 
                         // crossfade to sounds
-                        change_vol(Playing.sys[i], VOLUME_MIN, 0)
-                        change_vol(Playing.sys[j], VOLUME_MAX, 0)
+                        change_vol(Playing[i].sys, VOLUME_MIN, 0)
+                        change_vol(Playing[j].sys, VOLUME_MAX, 0)
 
-                        Playing.active[i] := 0
-                        Playing.active[j] := 1
+                        Playing[i].active := 0
+                        Playing[j].active := 1
 
                     end if
                 end for
@@ -250,7 +294,7 @@ function Playing_vibratoTrigger(ton)
         end for        
     end macro
 
-    trigger(lh_Vibrato, ton, and Playing.rh_Muted[i] = 0)
+    trigger(playMode.lh_Vibrato, ton, and Playing[i].playMode.rh_Muted = 0)
 
     // debug("after controller")
     // debug_Playing()
@@ -261,9 +305,9 @@ function Playing_isOverlapping(string, note) -> result
     result := 0
     declare i
 
-    for i := 0 to num_elements(Playing.sys)-1
-        if (Playing.sys[i] # -1 and Playing.ghost[i] = 0 and Playing.string[i] = string and Playing.note[i] # note)
-            Playing_getActiveProperty(letRing, i, tmp2, tmp)
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].sys # -1 and Playing[i].ghost = 0 and Playing[i].string = string and Playing[i].note # note)
+            Playing_getActiveProperty(playMode.letRing, i, tmp2, tmp)
             if (tmp2 = 0)
                 result := 1
             end if            
@@ -272,21 +316,21 @@ function Playing_isOverlapping(string, note) -> result
 end function
 
 macro Playing_getActiveProperty(#p#, i, #var#, #index_var#)
-    #var# := Playing.#p#[i]
+    #var# := Playing[i].#p#
 
-    for #index_var# := 0 to num_elements(Playing.active)-1
-        if (Playing.active[#index_var#] = 1 and Playing.parent[#index_var#] = i)
-            #var# := Playing.#p#[#index_var#]
+    for #index_var# := 0 to Globals.maxVoices-1
+        if (Playing[#index_var#].active = 1 and Playing[#index_var#].parent = i)
+            #var# := Playing[#index_var#].#p#
         end if
     end for
 end macro
 
 macro Playing_setPropertyTree(#p#, i, v, #index_var#)
-    Playing.#p#[i] := v
+    Playing[i].#p# := v
 
-    for #index_var# := 0 to num_elements(Playing.#p#)-1
-        if (Playing.parent[#index_var#] = i)
-            Playing.#p#[#index_var#] := v
+    for #index_var# := 0 to Globals.maxVoices-1
+        if (Playing[#index_var#].parent = i)
+            Playing[#index_var#].#p# := v
         end if
     end for
 end macro

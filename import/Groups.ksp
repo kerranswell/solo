@@ -1,5 +1,6 @@
 function Groups_prepare()
     resetGroups()
+    debug_GroupNames()
     setActiveGroups()
     disallow_group($ALL_GROUPS)
     allowGroups()        
@@ -45,7 +46,7 @@ function setActiveGroups
 end function
 
 function zeroGroup -> result
-    result := PlayMode.rh_Muted = 0 and PlayMode.pickDown = 1 and PlayMode.lh_Vibrato = 0
+    result := playMode.rh_Muted = 0 and playMode.pickDown = 1 and playMode.lh_Vibrato = 0
 end function
 
 function formGroupName() -> result
@@ -60,10 +61,10 @@ function formGroupName() -> result
     declare !pickDown[2]
     !pickDown[0] := "_pu"
     !pickDown[1] := "_pd"
-    result := rh_muted[PlayMode.rh_Muted] & pickDown[PlayMode.pickDown]
+    result := rh_muted[playMode.rh_Muted] & pickDown[playMode.pickDown]
 
-    if (PlayMode.lh_Vibrato > 0)
-        result := "v" & PlayMode.lh_Vibrato
+    if (playMode.lh_Vibrato > 0)
+        result := "v" & playMode.lh_Vibrato
     end if
 
 end function

@@ -1,62 +1,97 @@
+macro PlayMode_on_init
+    struct _PlayMode
+        declare rh_Muted // right hand muted articulation
+        declare pickDown // sound production: 0 = pick up, 1 = pick down, ...  etc.
+        declare lh_Vibrato // vibrato by left hand articulation
+        declare letRing // lets string sound after release
+        declare legato
+        declare offset
+
+        declare altStroke
+        declare vibratoSpeed
+        declare vibratoDepth
+    end struct
+
+    declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
+    declare &_PlayMode playModeGlobal // this is used for keeping global play mode properties through time    
+
+    PlayMode_initPlayMode(playMode)
+    PlayMode_initPlayMode(playModeGlobal)
+
+end macro
+
+macro PlayMode_initPlayMode(#p#)
+    #p#.rh_Muted := 0
+    #p#.pickDown := 1
+    #p#.lh_Vibrato := 0
+    #p#.letRing := 0
+    #p#.legato := 0
+    #p#.offset := 0
+
+    #p#.altStroke := 1
+    #p#.vibratoSpeed := VIBRATO_SPEED_DEFAULT
+    #p#.vibratoDepth := 0        
+end macro
+
 function setPlayMode(velocity, note, string)
 
-    PlayMode.lh_Vibrato := 0
+    playMode.lh_Vibrato := 0
 
-    PlayMode.letRing := PlayModeGlobal.letRing
-    PlayMode.pickDown := PlayModeGlobal.pickDown
+    playMode.letRing := playModeGlobal.letRing
+    playMode.pickDown := playModeGlobal.pickDown
 
     if (in_range(velocity, velocityArtZones.rh_Muted_Down[0], velocityArtZones.rh_Muted_Down[1]))
-        PlayMode.rh_Muted := 1
-        PlayMode.letRing := 0
+        playMode.rh_Muted := 1
+        playMode.letRing := 0
         if (UI.pickVelocityControl = 1)
-            PlayMode.pickDown := 1
+            playMode.pickDown := 1
         end if
     else if (in_range(velocity, velocityArtZones.rh_Muted_Up[0], velocityArtZones.rh_Muted_Up[1]))
-        PlayMode.rh_Muted := 1
-        PlayMode.letRing := 0
+        playMode.rh_Muted := 1
+        playMode.letRing := 0
         if (UI.pickVelocityControl = 1)
-            PlayMode.pickDown := 0
+            playMode.pickDown := 0
         end if
     else if (in_range(velocity, velocityArtZones.rh_Opened_Down[0], velocityArtZones.rh_Opened_Down[1]))
-        PlayMode.rh_Muted := 0
+        playMode.rh_Muted := 0
         if (UI.pickVelocityControl = 1)
-            PlayMode.pickDown := 1
+            playMode.pickDown := 1
         end if
     else if (in_range(velocity, velocityArtZones.rh_Opened_Up[0], velocityArtZones.rh_Opened_Up[1]))
-        PlayMode.rh_Muted := 0
+        playMode.rh_Muted := 0
         if (UI.pickVelocityControl = 1)
-            PlayMode.pickDown := 0
+            playMode.pickDown := 0
         end if
     else if (in_range(velocity, velocityArtZones.lh_Vibrato[0], velocityArtZones.lh_Vibrato[1]))
-        PlayMode.pickDown := 1
-        PlayMode.lh_Vibrato := 1
+        playMode.pickDown := 1
+        playMode.lh_Vibrato := 1
 {
     else if (in_range(velocity, velocityArtZones.letRing_Up[0], velocityArtZones.letRing_Up[1]))
-        PlayMode.letRing := 1
-        PlayMode.rh_Muted := 0
+        playMode.letRing := 1
+        playMode.rh_Muted := 0
         if (UI.pickVelocityControl = 1)
-            PlayMode.pickDown := 0
+            playMode.pickDown := 0
         end if
     else if (in_range(velocity, velocityArtZones.letRing_Down[0], velocityArtZones.letRing_Down[1]))
-        PlayMode.letRing := 1
-        PlayMode.rh_Muted := 0
+        playMode.letRing := 1
+        playMode.rh_Muted := 0
         if (UI.pickVelocityControl = 1)
-            PlayMode.pickDown := 1
+            playMode.pickDown := 1
         end if
 }
     end if
 
-    PlayMode.legato := 0
-    PlayMode.offset := 0
-    if (PlayMode.rh_Muted = 0)
-        PlayMode.legato := Playing_isOverlapping(string, note)
+    playMode.legato := 0
+    playMode.offset := 0
+    if (playMode.rh_Muted = 0)
+        playMode.legato := Playing_isOverlapping(string, note)
 
-        if (PlayMode.legato = 1)
+        if (playMode.legato = 1)
             declare r
             r := random(0, 770)
-            PlayMode.offset := (20 + r) * 1000 // (30-800)ms
+            playMode.offset := (20 + r) * 1000 // (30-800)ms
         else 
-            PlayMode.offset := Control_getAttackSoftness()
+            playMode.offset := Control_getAttackSoftness()
         end if
     end if
 
@@ -68,23 +103,23 @@ function PlayMode_getVelocityByPlayMode -> result
 
     result := velocityArtZones.rh_Opened_Down[0]
 
-    if (PlayMode.rh_Muted = 1)
-        if (PlayMode.pickDown = 1)
+    if (playMode.rh_Muted = 1)
+        if (playMode.pickDown = 1)
             result := velocityArtZones.rh_Muted_Down[0]
         else 
             result := velocityArtZones.rh_Muted_Up[0]
         end if
     end if
 
-    if (PlayMode.rh_Muted = 0)
-        if (PlayMode.pickDown = 1)
+    if (playMode.rh_Muted = 0)
+        if (playMode.pickDown = 1)
             result := velocityArtZones.rh_Opened_Down[0]
         else 
             result := velocityArtZones.rh_Opened_Up[0]
         end if
     end if
 
-    if (PlayMode.lh_Vibrato = 1)
+    if (playMode.lh_Vibrato = 1)
         result := velocityArtZones.lh_Vibrato[0]
     end if
 
@@ -98,36 +133,36 @@ function PlayMode_change(type, val)
         case ExtEventType.rh_Muted
             
             if (val = 1)
-                PlayMode.lh_Vibrato := 0
+                playMode.lh_Vibrato := 0
             end if
 
-            PlayMode.rh_Muted := val
+            playMode.rh_Muted := val
 
 
         // vibrato
         case ExtEventType.lh_Vibrato
             
             if (val = 1)
-                PlayMode.rh_Muted := 0
+                playMode.rh_Muted := 0
             end if
 
-            PlayMode.lh_Vibrato := val
+            playMode.lh_Vibrato := val
 
 
         // let ring
         case ExtEventType.letRing
 
             if (val = 1)
-                PlayMode.rh_Muted := 0
+                playMode.rh_Muted := 0
             end if
 
-            PlayMode.letRing := val
+            playMode.letRing := val
 
     end select
 
 end function
 
-function PlayModeGlobal_change(type, val)
+function playModeGlobal_change(type, val)
 
     select (type)
 
@@ -135,20 +170,20 @@ function PlayModeGlobal_change(type, val)
         case ExtEventType.lh_Vibrato
             
             if (val = 1)
-                PlayModeGlobal.rh_Muted := 0
+                playModeGlobal.rh_Muted := 0
             end if
 
-            PlayModeGlobal.lh_Vibrato := val
+            playModeGlobal.lh_Vibrato := val
 
 
         // let ring
         case ExtEventType.letRing
 
             if (val = 1)
-                PlayModeGlobal.rh_Muted := 0
+                playModeGlobal.rh_Muted := 0
             end if
 
-            PlayModeGlobal.letRing := val
+            playModeGlobal.letRing := val
 
     end select
 

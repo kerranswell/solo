@@ -1,7 +1,9 @@
-function on_init
-    declare const pitchTableColumnCount := 128
-    declare const pitchTableCount := 100
-    declare const stringCount := 6
-    define triggerPTCount := 7
-end function
+macro Const_on_init
+	family Const
+	    declare const pitchTableColumnCount := 128
+	    declare const pitchTableCount := 100
+	    declare const stringCount := 6
+	    define triggerPTCount := 7
+	end family
+end macro
 

@@ -1,3 +1,9 @@
+macro Board_on_init
+    declare notes2strings[128]
+    declare notes2frets[128]
+    Board_fillTable()    
+end macro
+
 function getString(n) -> result
     result := notes2strings[n]
 end function
@@ -10,7 +16,7 @@ function getVelocity(string, fret) -> result
 end function
 
 
-function fillBoardTable()
+function Board_fillTable()
     for i := 0 to 127
         notes2strings[i] := 0
         notes2frets[i] := 0
