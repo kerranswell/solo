@@ -1,6 +1,5 @@
 function Groups_prepare()
     resetGroups()
-    debug_GroupNames()
     setActiveGroups()
     disallow_group($ALL_GROUPS)
     allowGroups()        
@@ -34,19 +33,26 @@ function setActiveGroups
     declare @gname
     @gname := formGroupName()
 
-    for i := 0 to Globals.maxGroups-1
+    declare zg := zeroGroup()
+    declare takeCount := Globals.takeCounts[playMode.artCode]
+
+    for i := 0 to takeCount-1
         tmp := find_group(@gname & "_t" & (i+1))
-        if (tmp = 0 and not(zeroGroup()))
+        if (tmp = 0 and zg = 0)
             tmp := -1
         end if
         if (tmp >= 0 )
+            // debug("zg: " & zg & "; gn = " & @gname & "_t" & (i+1) & "; found: " & tmp)
             activeGroups[i]  := tmp
         end if
     end for
 end function
 
 function zeroGroup -> result
-    result := playMode.rh_Muted = 0 and playMode.pickDown = 1 and playMode.lh_Vibrato = 0
+    result := 0
+    if (playMode.rh_Muted = 0 and playMode.pickDown = 1 and playMode.lh_Vibrato = 0)
+        result := 1
+    end if
 end function
 
 function formGroupName() -> result
@@ -65,6 +71,14 @@ function formGroupName() -> result
 
     if (playMode.lh_Vibrato > 0)
         result := "v" & playMode.lh_Vibrato
+    end if
+
+    if (playMode.slideIn = 1)
+        result := "si"
+    end if
+
+    if (playMode.slideOut = 1)
+        result := "so"
     end if
 
 end function

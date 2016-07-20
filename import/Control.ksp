@@ -169,9 +169,9 @@ on controller
         { Let Ring }
         case 23
             if (%CC[$CC_NUM] = 0)
-                playModeGlobal_change(ExtEventType.letRing, 0)
+                PlayMode_change(playModeGlobal, ExtEventType.letRing, 0)
             else
-                playModeGlobal_change(ExtEventType.letRing, 1)
+                PlayMode_change(playModeGlobal, ExtEventType.letRing, 1)
             end if
 
         { Vibrato Speed }
@@ -181,6 +181,22 @@ on controller
         { Vibrato Depth }
         case 25
             extControl(ExtEventType.vibratoDepth, %CC[$CC_NUM])
+
+        { Slide In }
+        case 26
+            if (%CC[$CC_NUM] = 0)
+                PlayMode_change(playModeGlobal, ExtEventType.slideIn, 0)
+            else
+                PlayMode_change(playModeGlobal, ExtEventType.slideIn, 1)
+            end if
+
+        { Slide Out }
+        case 26
+            if (%CC[$CC_NUM] = 0)
+                PlayMode_change(playModeGlobal, ExtEventType.slideOut, 0)
+            else
+                PlayMode_change(playModeGlobal, ExtEventType.slideOut, 1)
+            end if
 
     end select
 

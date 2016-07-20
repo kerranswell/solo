@@ -19,7 +19,7 @@ end function
 
 function debug_Groups
     for i := 0 to Globals.maxGroups-1
-        debug(activeGroups[i])
+        debug("i(" & activeGroups[i] & ") = " & group_name(activeGroups[i]))
     end for
 end function
 function debug_GroupNames
@@ -40,7 +40,7 @@ function debug_Strings(legato)
     declare @rh_Muted
     declare @lh_Vibrato
 
-    // debug2_clear()
+    debug2_clear()
 
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].string > 0 and Playing[i].active = 1 and Playing[i].ghost = 0)
@@ -75,7 +75,7 @@ function debug_Strings(legato)
             debug2("n" & Playing[i].note & "; string " & Playing[i].string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg("&legato&")")
         end if
     end for
-    // debug2("---------")  
+    debug2("---------")  
 end function
 
 function debug(s)

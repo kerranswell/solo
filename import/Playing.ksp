@@ -76,6 +76,10 @@ function Playing_timeOperationsStart(i)
         Playing_startVibratoCycle(i)
     end if
 
+    if (playMode.slideIn = 1)
+
+    end if
+
 end function
 
 function Playing_getIndex(_note, string) -> result
@@ -136,17 +140,23 @@ end function
 
 function Playing_startChildren(i)
     declare j
-    macro createChild(#p#, #v#)
-        j := Playing_createChild(i)
+    macro createChild(#p#, #v#, active)
+        j := Playing_createChild(i, active)
         if (j # -1)
-            Playing[j].#p# := #v# // main feature of this child
-            PlayMode_change(ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
+            // Playing[j].#p# := #v# // main feature of this child
+            PlayMode_change(Playing[j].playMode, ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
+            PlayMode_change(playMode, ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
             Groups_prepare()
 
-            Playing[j].sys := play_note(Playing[j].note, getVelocity(Playing[j].string, Playing[j].fret), Control_getAttackSoftness(), -1)
+            Playing[j].sys := play_note(Playing[j].note, getVelocity(Playing[j].string, Playing[j].fret), Playing[j].playMode.offset, -1)
 
             // volume off
-            change_vol(Playing[j].sys, VOLUME_MIN, 1)
+            if (active = 0)
+                change_vol(Playing[j].sys, VOLUME_MIN, 1)
+            else 
+                change_vol(Playing[i].sys, VOLUME_MIN, 1)
+            end if
+            
         end if        
     end macro
 {
@@ -158,6 +168,10 @@ function Playing_startChildren(i)
         createChild(lh_Vibrato, 0)
     end if
 }
+    if (playModeGlobal.slideIn = 1)
+        createChild(slideIn, 1, 1)
+    end if
+
     // debug2('test')
     // debug_Playing()
 
@@ -175,7 +189,7 @@ function Playing_getFreeSlotIndex -> result
     end if
 end function
 
-function Playing_createChild(i) -> result
+function Playing_createChild(i, active) -> result
     declare j
     j := Playing_getFreeSlotIndex()
 
@@ -183,7 +197,13 @@ function Playing_createChild(i) -> result
         Playing_copySlot(i,j)
 
         Playing[j].parent := i
-        Playing[j].active := 0
+
+        if (active = 1)
+            Playing[j].active := 1
+            Playing[i].active := 0
+        else 
+            Playing[j].active := 0
+        end if
     else 
         message(@MSG_MAX_VOICE_REACHED)
     end if
@@ -334,3 +354,17 @@ macro Playing_setPropertyTree(#p#, i, v, #index_var#)
         end if
     end for
 end macro
+
+function Playing_getActiveIndex(i) -> result
+    declare j
+    result := -1
+    if (Playing[i].active = 1)
+        result := i
+    else 
+        for j := 0 to Globals.maxVoices-1
+            if (Playing[j].sys # -1 and j # i and Playing[j].active = 1 and (Playing[j].parent = i and Playing[i].parent = -1 or (Playing[j].parent = -1 or Playing[j].parent = Playing[i].parent) and Playing[i].parent # -1))
+                result := i
+            end if
+        end for
+    end if
+end function

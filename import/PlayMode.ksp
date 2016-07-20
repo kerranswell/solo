@@ -4,12 +4,16 @@ macro PlayMode_on_init
         declare pickDown // sound production: 0 = pick up, 1 = pick down, ...  etc.
         declare lh_Vibrato // vibrato by left hand articulation
         declare letRing // lets string sound after release
+        declare slideIn // slideIn sample triggers simultaniously with main note
+        declare slideOut // slideOut sample triggers after release
         declare legato
         declare offset
 
         declare altStroke
         declare vibratoSpeed
         declare vibratoDepth
+
+        declare artCode
     end struct
 
     declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
@@ -28,9 +32,14 @@ macro PlayMode_initPlayMode(#p#)
     #p#.legato := 0
     #p#.offset := 0
 
+    #p#.slideIn := 0
+    #p#.slideOut := 0
+
     #p#.altStroke := 1
     #p#.vibratoSpeed := VIBRATO_SPEED_DEFAULT
-    #p#.vibratoDepth := 0        
+    #p#.vibratoDepth := 0
+
+    #p#.artCode := 0
 end macro
 
 function setPlayMode(velocity, note, string)
@@ -39,18 +48,25 @@ function setPlayMode(velocity, note, string)
 
     playMode.letRing := playModeGlobal.letRing
     playMode.pickDown := playModeGlobal.pickDown
+    playMode.slideIn := 0
+    playMode.slideOut := 0
+
+    playMode.artCode := ArtsCodes.o_pd
 
     if (in_range(velocity, velocityArtZones.rh_Muted_Down[0], velocityArtZones.rh_Muted_Down[1]))
         playMode.rh_Muted := 1
         playMode.letRing := 0
+        playMode.artCode := ArtsCodes.m_pd
         if (UI.pickVelocityControl = 1)
             playMode.pickDown := 1
         end if
     else if (in_range(velocity, velocityArtZones.rh_Muted_Up[0], velocityArtZones.rh_Muted_Up[1]))
         playMode.rh_Muted := 1
         playMode.letRing := 0
+        playMode.artCode := ArtsCodes.m_pd
         if (UI.pickVelocityControl = 1)
             playMode.pickDown := 0
+            playMode.artCode := ArtsCodes.m_pu
         end if
     else if (in_range(velocity, velocityArtZones.rh_Opened_Down[0], velocityArtZones.rh_Opened_Down[1]))
         playMode.rh_Muted := 0
@@ -61,10 +77,12 @@ function setPlayMode(velocity, note, string)
         playMode.rh_Muted := 0
         if (UI.pickVelocityControl = 1)
             playMode.pickDown := 0
+            playMode.artCode := ArtsCodes.o_pu
         end if
     else if (in_range(velocity, velocityArtZones.lh_Vibrato[0], velocityArtZones.lh_Vibrato[1]))
         playMode.pickDown := 1
         playMode.lh_Vibrato := 1
+        playMode.artCode := ArtsCodes.v1
 {
     else if (in_range(velocity, velocityArtZones.letRing_Up[0], velocityArtZones.letRing_Up[1]))
         playMode.letRing := 1
@@ -93,6 +111,14 @@ function setPlayMode(velocity, note, string)
         else 
             playMode.offset := Control_getAttackSoftness()
         end if
+    end if
+
+    if (playMode.artCode = ArtsCodes.m_pd and UI.softMute = 0)
+        playMode.artCode := ArtsCodes.m2_pd
+    end if
+
+    if (playMode.artCode = ArtsCodes.m_pu and UI.softMute = 0)
+        playMode.artCode := ArtsCodes.m2_pu
     end if
 
     uiFeedbackPlayMode()
@@ -125,7 +151,48 @@ function PlayMode_getVelocityByPlayMode -> result
 
 end function
 
-function PlayMode_change(type, val)
+macro PlayMode_change(#pm#, #type#, val)
+    select (#type#)
+
+        // vibrato
+        case ExtEventType.rh_Muted
+            
+            if (val = 1)
+                #pm#.lh_Vibrato := 0
+            end if
+
+            #pm#.rh_Muted := val
+
+
+        // vibrato
+        case ExtEventType.lh_Vibrato
+            
+            if (val = 1)
+                #pm#.rh_Muted := 0
+            end if
+
+            #pm#.lh_Vibrato := val
+
+
+        // let ring
+        case ExtEventType.letRing
+
+            if (val = 1)
+                #pm#.rh_Muted := 0
+            end if
+
+            #pm#.letRing := val
+
+        // slide in
+        case ExtEventType.slideIn
+
+            #pm#.slideIn := val
+            #pm#.offset := 0
+
+    end select
+end macro
+
+{function PlayMode_change(type, val)
 
     select (type)
 
@@ -158,6 +225,11 @@ function PlayMode_change(type, val)
 
             playMode.letRing := val
 
+        // slide in
+        case ExtEventType.slideIn
+
+            playModeGlobal.slideIn := val
+
     end select
 
 end function
@@ -185,6 +257,12 @@ function playModeGlobal_change(type, val)
 
             playModeGlobal.letRing := val
 
+        // slide in
+        case ExtEventType.slideIn
+
+            playModeGlobal.slideIn := val
+
     end select
 
 end function
+}
