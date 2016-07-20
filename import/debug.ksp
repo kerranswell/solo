@@ -93,3 +93,8 @@ end function
 function debug2_clear
     set_text(UI.label2, "")
 end function
+
+function debug_PitchTable
+    debug2("PT Time Length: " & PitchTable.timeLength[PGS.pitchTableIndex])
+    debug2("PT Pitch Range: " & PitchTable.pitchRange[PGS.pitchTableIndex])
+end function

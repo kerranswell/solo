@@ -1,6 +1,6 @@
 function Playing_startPitchTableCycle(i, string)
     if ((Playing.string[i] = string or string = SConst.stringCount+1) and Playing.to_pitchTable[i] = -1)
-        Playing.to_pitchTable[i] := 0
+        Playing.to_pitchTable[i] := Funcs.Time_getCurrentTime()
     end if
 end function
 
