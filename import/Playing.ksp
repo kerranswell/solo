@@ -138,6 +138,20 @@ function Playing_push(sys, _note, string, fret, active) -> result
 
 end function
 
+function Playing_getDuration(i) -> result
+    result := 0
+    declare @zone_name
+    declare zone_id
+
+    if (Playing[i].playMode.slideIn = 1)
+        // @zone_name := PlayMode_getZoneName(Playing[i].string, Playing[i].fret, Playing[i].note, Globals.lastTakeIndex)
+        // zone_id := find_zone(@zone_name)
+        result := 200000
+        // if ()
+    end if
+    
+end function
+
 function Playing_startChildren(i)
     declare j
     macro createChild(#p#, #v#, active)
@@ -148,13 +162,16 @@ function Playing_startChildren(i)
             PlayMode_change(playMode, ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
             Groups_prepare()
 
-            Playing[j].sys := play_note(Playing[j].note, getVelocity(Playing[j].string, Playing[j].fret), Playing[j].playMode.offset, -1)
+            declare duration
+            duration := Playing_getDuration(j)
+
+            Playing[j].sys := play_note(Playing[j].note, getVelocity(Playing[j].string, Playing[j].fret), Playing[j].playMode.offset, duration)
 
             // volume off
             if (active = 0)
-                change_vol(Playing[j].sys, VOLUME_MIN, 1)
+                change_vol(Playing[j].sys, VOLUME_MIN, 0)
             else 
-                change_vol(Playing[i].sys, VOLUME_MIN, 1)
+                change_vol(Playing[i].sys, VOLUME_MIN, 0)
             end if
             
         end if        
@@ -314,6 +331,8 @@ end function
 function Playing_isOverlapping(string, note) -> result
     result := 0
     declare i
+    declare tmp
+    declare tmp2
 
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].sys # -1 and Playing[i].ghost = 0 and Playing[i].string = string and Playing[i].note # note)
@@ -353,7 +372,7 @@ function Playing_getActiveIndex(i) -> result
     else 
         for j := 0 to Globals.maxVoices-1
             if (Playing[j].sys # -1 and j # i and Playing[j].active = 1 and (Playing[j].parent = i and Playing[i].parent = -1 or (Playing[j].parent = -1 or Playing[j].parent = Playing[i].parent) and Playing[i].parent # -1))
-                result := i
+                result := j
             end if
         end for
     end if

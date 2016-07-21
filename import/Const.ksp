@@ -1,9 +1,42 @@
-macro Const_on_init
+function Const_on_init
 	family Const
 	    declare const pitchTableColumnCount := 128
 	    declare const pitchTableCount := 100
 	    declare const stringCount := 6
+	    declare const fretCount := 25
 	    define triggerPTCount := 7
 	end family
-end macro
 
+	define FILE_EXT := ".wav"
+
+    const ArtsCodes
+        o_pd
+        o_pu
+        m_pd
+        m_pu
+        m2_pd
+        m2_pu
+        v1
+        si
+        so
+    end const
+    
+    family Globals
+        declare takeCounts[ArtsCodes.SIZE]
+        declare const maxVoices := 100
+        declare const maxGroups := 3
+        declare lastGroupIndex := -1
+        declare lastTakeIndex := -1
+
+        declare pitchTableChanged := 0
+        declare pitchTableIndex := -1
+    end family
+
+    declare i
+    for i := 0 to ArtsCodes.SIZE-1
+        Globals.takeCounts[i] := 3
+    end for
+    Globals.takeCounts[ArtsCodes.v1] := 2
+
+
+end function

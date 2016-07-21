@@ -1,4 +1,5 @@
 macro Board_on_init
+    declare !noteChar[12] := ("c", "db", "d", "eb", "e", "f", "gb", "g", "ab", "a", "bb", "b")
     declare notes2strings[128]
     declare notes2frets[128]
     Board_fillTable()    
@@ -87,4 +88,14 @@ function _Bb(n) -> result
 end function
 function _B(n) -> result
     result := (n+2) * 12 + 11
+end function
+
+function noteName(n) -> result
+    declare octave
+    declare note
+
+    octave := n / 12 - 2
+    note := n mod 12
+
+    result := !noteChar[note] & octave
 end function
