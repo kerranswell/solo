@@ -157,13 +157,11 @@ function Playing_startChildren(i)
         if (j # -1)
             // Playing[j].#p# := #v# // main feature of this child
             PlayMode_change(Playing[j].playMode, ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
-            Groups_prepare(j)
 
             declare duration
-            duration := Playing_getDuration(j)
+            Playing[j].playMode.duration := Playing_getDuration(j)
 
-            Playing[j].sys := play_note(Playing[j].note, getVelocity(Playing[j].string, Playing[j].fret), Playing[j].playMode.offset, duration)
-
+            Playing_playNote(j)
             // volume off
             if (active = 0)
                 change_vol(Playing[j].sys, VOLUME_MIN, 0)
@@ -189,6 +187,11 @@ function Playing_startChildren(i)
     // debug2('test')
     // debug_Playing()
 
+end function
+
+function Playing_playNote(i)
+    Groups_prepare(i)
+    Playing[i].sys := play_note(Playing[i].note, getVelocity(Playing[i].string, Playing[i].fret), Playing[i].playMode.offset, Playing[i].playMode.duration)
 end function
 
 function Playing_getFreeSlotIndex -> result
