@@ -17,11 +17,11 @@ macro PlayMode_on_init
         declare artCode
     end struct
 
-    declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
+    declare &_PlayMode playModeLocal // this is used for setting note play mode props at the moment new note starts,
     declare &_PlayMode playModeGlobal // this is used for keeping global play mode properties through time    
 
-    PlayMode_initPlayMode(playMode)
-    PlayMode_initPlayMode(playModeGlobal)
+    PlayMode_resetPlayMode(playModeLocal)
+    PlayMode_resetPlayMode(playModeGlobal)
     playModeGlobal.slideIn := 0
 
     // declare zones[ArtsCodes.SIZE, 128, 3, Const.stringCount, Const.fretCount]
@@ -53,7 +53,7 @@ function PlayMode_getZoneName(string, fret, _note, takeIndex) -> result
 end function
 }
 
-macro PlayMode_initPlayMode(#p#)
+macro PlayMode_resetPlayMode(#p#)
     #p#.rh_Muted := 0
     #p#.pickDown := 1
     #p#.lh_Vibrato := 0
@@ -180,7 +180,7 @@ function setPlayMode(i, velocity)
 
 end function
 
-function PlayMode_getVelocityByPlayMode -> result
+{function PlayMode_getVelocityByPlayMode(i) -> result
 
     result := velocityArtZones.rh_Opened_Down[0]
 
@@ -205,6 +205,7 @@ function PlayMode_getVelocityByPlayMode -> result
     end if
 
 end function
+}
 
 macro PlayMode_change(#pm#, #type#, val)
     select (#type#)

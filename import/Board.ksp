@@ -20,7 +20,7 @@ end function
 function Board_fillTable()
     for i := 0 to 127
         notes2strings[i] := 0
-        notes2frets[i] := 0
+        notes2frets[i] := -1
     end for
 
     notes2strings[_A(1)] := 6

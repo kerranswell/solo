@@ -1,7 +1,7 @@
 { ******* Debugging ******** }
 
-function debug_PlayMode
-    debug("rh_Muted(" & playMode.rh_Muted & "), " & "lh_Vibrato(" & playMode.lh_Vibrato & "), " & "pickDown(" & playMode.pickDown & "), " & "letRing(" & playMode.letRing & "), " )
+function debug_PlayMode(i)
+    debug("rh_Muted(" & Playing[i].playMode.rh_Muted & "), " & "lh_Vibrato(" & Playing[i].playMode.lh_Vibrato & "), " & "pickDown(" & Playing[i].playMode.pickDown & "), " & "letRing(" & Playing[i].playMode.letRing & "), " )
     debug("---------")
 end function
 
@@ -34,7 +34,7 @@ function debug_affectedGroups
     end for
 end function
 
-function debug_Strings(legato)
+function debug_Strings()
     declare @pickDown
     declare @letRing
     declare @rh_Muted
@@ -72,7 +72,7 @@ function debug_Strings(legato)
                 @pickDown := " dn"
             end if
 
-            debug2("n" & Playing[i].note & "; string " & Playing[i].string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg("&legato&") si(" & Playing[i].playMode.slideIn & ")")
+            debug2("n" & Playing[i].note & "; string " & Playing[i].string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg(" & Playing[i].playMode.legato & ") si(" & Playing[i].playMode.slideIn & ")")
         end if
     end for
     debug2("---------")  

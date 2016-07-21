@@ -65,7 +65,7 @@ end function
 function Playing_timeOperationsStart(i)
     Playing[i].startTime := Funcs.Time_getCurrentTime()
 
-    if (playMode.legato = 1)
+    if (Playing[i].playMode.legato = 1)
         // starting fade-in operation
         // Playing[i].timeOp.fadeIn := 0
         // change_vol(Playing[i].sys, VOLUME_MIN, 0)
@@ -76,7 +76,7 @@ function Playing_timeOperationsStart(i)
         Playing_startVibratoCycle(i)
     end if
 
-    if (playMode.slideIn = 1)
+    if (Playing[i].playMode.slideIn = 1)
 
     end if
 
@@ -130,8 +130,6 @@ function Playing_push(sys, _note, string, fret, active) -> result
         Playing[i].fret := fret
 
         Playing[i].active := active
-
-        PlayMode_copy(Playing[i].playMode, playMode)
     end if
 
     result := i
@@ -159,8 +157,7 @@ function Playing_startChildren(i)
         if (j # -1)
             // Playing[j].#p# := #v# // main feature of this child
             PlayMode_change(Playing[j].playMode, ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
-            PlayMode_change(playMode, ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
-            Groups_prepare()
+            Groups_prepare(j)
 
             declare duration
             duration := Playing_getDuration(j)
@@ -273,7 +270,7 @@ function Playing_resetItem(i)
     Playing[i].string := -1
     Playing[i].fret := -1
     // Playing[i].playMode.letRing := 0
-    PlayMode_initPlayMode(Playing[i].playMode)
+    PlayMode_resetPlayMode(Playing[i].playMode)
 
     Playing[i].ghost := 0
     Playing[i].parent := -1

@@ -1,4 +1,5 @@
-function Groups_prepare()
+function Groups_prepare(i)
+    PlayMode_copy(playModeLocal, Playing[i].playMode)
     resetGroups()
     setActiveGroups()
     disallow_group($ALL_GROUPS)
@@ -36,7 +37,7 @@ function setActiveGroups
     @gname := formGroupName()
 
     declare zg := zeroGroup()
-    declare takeCount := Globals.takeCounts[playMode.artCode]
+    declare takeCount := Globals.takeCounts[playModeLocal.artCode]
 
     for i := 0 to takeCount-1
         tmp := find_group(@gname & "_t" & (i+1))
@@ -52,7 +53,7 @@ end function
 
 function zeroGroup -> result
     result := 0
-    if (playMode.rh_Muted = 0 and playMode.pickDown = 1 and playMode.lh_Vibrato = 0)
+    if (playModeLocal.rh_Muted = 0 and playModeLocal.pickDown = 1 and playModeLocal.lh_Vibrato = 0)
         result := 1
     end if
 end function
@@ -69,17 +70,17 @@ function formGroupName() -> result
     declare !pickDown[2]
     !pickDown[0] := "_pu"
     !pickDown[1] := "_pd"
-    result := rh_muted[playMode.rh_Muted] & pickDown[playMode.pickDown]
+    result := rh_muted[playModeLocal.rh_Muted] & pickDown[playModeLocal.pickDown]
 
-    if (playMode.lh_Vibrato > 0)
-        result := "v" & playMode.lh_Vibrato
+    if (playModeLocal.lh_Vibrato > 0)
+        result := "v" & playModeLocal.lh_Vibrato
     end if
 
-    if (playMode.slideIn = 1)
+    if (playModeLocal.slideIn = 1)
         result := "si"
     end if
 
-    if (playMode.slideOut = 1)
+    if (playModeLocal.slideOut = 1)
         result := "so"
     end if
 
