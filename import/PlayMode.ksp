@@ -60,7 +60,7 @@ macro PlayMode_resetPlayMode(#p#)
     #p#.letRing := 0
     #p#.legato := 0
     #p#.offset := 0
-    #p#.duration := 0
+    #p#.duration := -1
 
     #p#.slideIn := 0
     #p#.slideOut := 0
@@ -96,6 +96,7 @@ function setPlayMode(i, velocity)
     declare note := Playing[i].note
     declare string := Playing[i].string
     declare &_PlayMode playMode
+    PlayMode_resetPlayMode(playMode)
 
     playMode.lh_Vibrato := 0
 
@@ -247,3 +248,14 @@ macro PlayMode_change(#pm#, #type#, val)
 
     end select
 end macro
+
+function PlayMode_nextNoteInit
+
+    if (playModeGlobal.altStroke = 1 and UI.pickVelocityControl = 0)
+        if (playModeGlobal.pickDown = 1)
+            playModeGlobal.pickDown := 0
+        else 
+            playModeGlobal.pickDown := 1
+        end if
+    end if
+end function

@@ -24,11 +24,6 @@ macro Playing_on_init
 
         declare active // when several notes connected, one of them is active, i.e. sounds right now
 
-        // when the note stops because new the same note on the same string is triggered, first one is marked as ghost (and all its children)
-        // that is done, because on release we need to delineate old note from the new one or both will be released just because old was stopped 
-        // ghost notes live till next release event and go away peacefully and silently while noone sees it.
-        declare ghost
-
         { Time operations }
         declare startTime
 
@@ -48,7 +43,7 @@ function Playing_startPitchTableCycle(i, string)
 end function
 
 function Playing_startVibratoCycle(i)
-    if (Playing[i].sys # -1 and Playing[i].ghost = 0 and Playing[i].playMode.rh_Muted = 0)
+    if (Playing[i].sys # -1 and Playing[i].playMode.rh_Muted = 0)
         Playing[i].timeOp.vibrato := 0
     end if
 end function
@@ -101,25 +96,21 @@ function Playing_getIndex(_note, string) -> result
     end if
 end function
 
-function Playing_getGhostIndex(sys) -> result
-    declare i := 0
-    // debug("cur_sys " & sys)
-    // debug_Playing()
-    while (i < Globals.maxVoices and (Playing[i].sys # sys or Playing[i].ghost # 1 or Playing[i].parent # -1))
-        inc(i)
-    end while
-
+function Playing_getIndexBySys(sys) -> result
+    declare i
     result := -1
-    if (i < Globals.maxVoices)
-        result := i
-    end if
-    // debug("result " & result)
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].sys = sys)
+            result := i
+            break(i, Globals.maxVoices)
+        end if
+    end for
 end function
 
 function Playing_push(sys, _note, string, fret, active) -> result
     declare i := 0
 
-    while (i < Globals.maxVoices and (Playing[i].sys # -1 or Playing[i].ghost = 1)) // looking for first unempty slot which is not ghost note
+    while (i < Globals.maxVoices and Playing[i].sys # -1)
         inc(i)
     end while
 
@@ -137,7 +128,7 @@ function Playing_push(sys, _note, string, fret, active) -> result
 end function
 
 function Playing_getDuration(i) -> result
-    result := 0
+    result := -1
     declare @zone_name
     declare zone_id
 
@@ -155,10 +146,8 @@ function Playing_startChildren(i)
     macro createChild(#p#, #v#, active)
         j := Playing_createChild(i, active)
         if (j # -1)
-            // Playing[j].#p# := #v# // main feature of this child
-            PlayMode_change(Playing[j].playMode, ExtEventType.#p#, #v#) // preparing local play mode for allowing groups
+            PlayMode_change(Playing[j].playMode, ExtEventType.#p#, #v#) // preparing play mode for allowing groups
 
-            declare duration
             Playing[j].playMode.duration := Playing_getDuration(j)
 
             Playing_playNote(j)
@@ -171,15 +160,15 @@ function Playing_startChildren(i)
             
         end if        
     end macro
-{
+
     if (Playing[i].playMode.lh_Vibrato = 0)
-        createChild(lh_Vibrato, 1)
+        createChild(lh_Vibrato, 1, 0)
     end if
 
     if (Playing[i].playMode.lh_Vibrato = 1)
-        createChild(lh_Vibrato, 0)
+        createChild(lh_Vibrato, 0, 0)
     end if
-}
+
     if (playModeGlobal.slideIn = 1)
         createChild(slideIn, 1, 1)
     end if
@@ -245,8 +234,6 @@ function Playing_copySlot(i,j)
     copyProp(parent)
     copyProp(active)
 
-    copyProp(ghost)
-
 end function
 
 function Playing_remove(_note, string)
@@ -275,7 +262,6 @@ function Playing_resetItem(i)
     // Playing[i].playMode.letRing := 0
     PlayMode_resetPlayMode(Playing[i].playMode)
 
-    Playing[i].ghost := 0
     Playing[i].parent := -1
     Playing[i].active := 0
 
@@ -304,9 +290,9 @@ function Playing_vibratoTrigger(ton)
         declare i // note to be morphed to vibrato
         declare j // child note to be created and morphed to
         for i := 0 to Globals.maxVoices-1
-            if (Playing[i].sys # -1 and Playing[i].ghost = 0 and Playing[i].parent = -1 and Playing[i].#p# # #new_value# #parent_condition#)
+            if (Playing[i].sys # -1 and Playing[i].parent = -1 and Playing[i].#p# # #new_value# #parent_condition#)
                 for j := 0 to Globals.maxVoices-1
-                    if (Playing[j].sys # -1 and Playing[j].ghost = 0 and Playing[j].parent = i and Playing[j].#p# = #new_value#)
+                    if (Playing[j].sys # -1 and Playing[j].parent = i and Playing[j].#p# = #new_value#)
 
                         // crossfade to sounds
                         change_vol(Playing[i].sys, VOLUME_MIN, 0)
@@ -333,11 +319,11 @@ function Playing_isOverlapping(string, note) -> result
     declare i
     declare tmp
     declare tmp2
-
+    debug("string " & string & ", note " & note)
     for i := 0 to Globals.maxVoices-1
-        if (Playing[i].sys # -1 and Playing[i].ghost = 0 and Playing[i].string = string and Playing[i].note # note)
-            Playing_getActiveProperty(playMode.letRing, i, tmp2, tmp)
-            if (tmp2 = 0)
+        debug(i & ": sys: " & Playing[i].sys & ", string " & Playing[i].string & ", note " & Playing[i].note)
+        if (Playing[i].sys # -1 and Playing[i].string = string and Playing[i].note # note)
+            if (Playing[i].playMode.letRing = 0)
                 result := 1
             end if            
         end if
@@ -376,4 +362,55 @@ function Playing_getActiveIndex(i) -> result
             end if
         end for
     end if
+end function
+
+function Playing_stopAllNotes
+    declare i
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].parent = -1)
+            Playing_stopNote(i)
+        end if
+    end for    
+end function
+
+function Playing_stopNotesOnString(string)
+    declare i
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].string = string and Playing[i].parent = -1)
+            Playing_stopNote(i)
+        end if
+    end for
+end function
+
+function Playing_stopNote(i)
+
+    Playing_stopChildren(i)
+
+    note_off(Playing[i].sys)
+    Playing_resetItemWithChilds(i)
+
+end function
+
+function Playing_stopChildren(i)
+    declare j
+
+    // stop all children
+    for j := 0 to Globals.maxVoices-1
+        if (Playing[j].parent = i)
+            note_off(Playing[j].sys)
+        end if
+    end for    
+end function
+
+
+function Playing_maxVoicesReached() -> result
+    declare i := 0
+    while (i < Globals.maxVoices and Playing[i].sys # -1)
+        inc(i)
+    end while
+    
+    result := 0
+    if (i = Globals.maxVoices)
+        result := 1
+    end if    
 end function

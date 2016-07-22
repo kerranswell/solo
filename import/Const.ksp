@@ -23,7 +23,7 @@ function Const_on_init
     
     family Globals
         declare takeCounts[ArtsCodes.SIZE]
-        declare const maxVoices := 100
+        declare const maxVoices := 5
         declare const maxGroups := 3
         declare lastGroupIndex := -1
         declare lastTakeIndex := -1
@@ -40,3 +40,7 @@ function Const_on_init
 
 
 end function
+
+macro break(#i#, #v#)
+	#i# := #v#
+end macro
