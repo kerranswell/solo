@@ -9,7 +9,7 @@ function debug_Playing
     // debug_clear()
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].sys # -1)
-            debug("([" & i & "] s" & Playing[i].string &"), " & "sys(" & Playing[i].sys & "), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &")")
+            debug("([" & i & "] s" & Playing[i].string &"), " & "sys(" & Playing[i].sys & {"), z(" & Playing[i].zone.id & ":" & Playing[i].zone.length & }"), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &")")
             debug("")            
         end if
     end for
@@ -19,7 +19,7 @@ end function
 
 function debug_Groups
     for i := 0 to Globals.maxGroups-1
-        debug("i(" & activeGroups[i] & ") = " & group_name(activeGroups[i]))
+        debug2("i(" & activeGroups[i] & ") = " & group_name(activeGroups[i]))
     end for
 end function
 function debug_GroupNames

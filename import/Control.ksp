@@ -57,7 +57,13 @@ function extControl(etype, value)
             playModeGlobal.altStroke := value
 
         case ExtEventType.lh_Vibrato
-            playModeGlobal.lh_Vibrato := value
+            if (playModeGlobal.lh_Vibrato = 1)
+                playModeGlobal.lh_Vibrato := 0
+            else 
+                playModeGlobal.lh_Vibrato := 1
+            end if
+            Playing_vibratoTrigger(playModeGlobal.lh_Vibrato)
+            // playModeGlobal.lh_Vibrato := value
 
         case ExtEventType.vibratoSpeed
             playModeGlobal.vibratoSpeed := value
@@ -66,14 +72,14 @@ function extControl(etype, value)
             if (playModeGlobal.vibratoDepth = 0 and value > 0)
                 // starting vibrato cycle
                 for i := 0 to Globals.maxVoices-1
-                    if (Playing[i].sys # -1 and Playing[i].ghost = 0)
+                    if (Playing[i].sys # -1)
                         Playing_startVibratoCycle(i)
                     end if
                 end for
             else if (playModeGlobal.vibratoDepth > 0 and value = 0)
                 // ending vibrato cycle
                 for i := 0 to Globals.maxVoices-1
-                    if (Playing[i].sys # -1 and Playing[i].ghost = 0 and Playing[i].timeOp.vibrato # -1)
+                    if (Playing[i].sys # -1 and Playing[i].timeOp.vibrato # -1)
                         Playing[i].timeOp.vibrato := -1
                         change_tune(Playing[i].sys, 0, 0)
                     end if
@@ -86,13 +92,15 @@ function extControl(etype, value)
             declare string
             string := value
             for i := 0 to Globals.maxVoices-1
-                if (Playing[i].sys # -1 and Playing[i].ghost = 0)
+                if (Playing[i].sys # -1)
 
                     // starting Time operation
                     Playing_startPitchTableCycle(i, string)
                 end if
             end for
 
+        case ExtEventType.slideIn
+            PlayMode_change(playModeGlobal, ExtEventType.slideIn, value)
 
 
 {        case ExtEventType.vibratoSpeed
@@ -184,18 +192,14 @@ on controller
 
         { Slide In }
         case 26
-            if (%CC[$CC_NUM] = 0)
-                PlayMode_change(playModeGlobal, ExtEventType.slideIn, 0)
-            else
-                PlayMode_change(playModeGlobal, ExtEventType.slideIn, 1)
-            end if
+            extControl(ExtEventType.slideIn, %CC[$CC_NUM])
 
         { Slide Out }
-        case 26
+        case 27
             if (%CC[$CC_NUM] = 0)
                 PlayMode_change(playModeGlobal, ExtEventType.slideOut, 0)
             else
-                PlayMode_change(playModeGlobal, ExtEventType.slideOut, 1)
+                PlayMode_change(playModeGlobal, ExtEventType.slideOut, %CC[$CC_NUM])
             end if
 
     end select
@@ -230,7 +234,16 @@ function timeOperations()
 
     for i := 0 to Globals.maxVoices-1
 
-        if (Playing[i].sys # -1 and Playing[i].ghost = 0)
+        if (Playing[i].sys # -1)
+
+            if (Playing[i].playMode.slideIn > 0 and Playing[i].active = 1)
+                declare length
+                length := Funcs.linearEq(Playing[i].playMode.slideIn, 1, 300, 127, 60, 100) / 100
+                if (now - Playing[i].startTime >= length)
+                    note_off(Playing[i].sys)
+                end if
+            end if
+
 {
             if (Playing[i].timeOp.fadeIn # -1 and Playing[i].active = 1)
 
@@ -262,7 +275,7 @@ function timeOperations()
                     else 
                         declare alpha := Playing[i].timeOp.vibrato * (9000 / (101 - speed)) // 9000 because of degree type; 500
                         declare a := (timeOperationValues.vibratoDepthMax / 100) * playModeGlobal.vibratoDepth
-                        // val := Sin(alpha)
+                        val := Sin(alpha)
                         val := val * (a / 10000) // sin returns from -10^4 to 10^4
                     end if                    
 
@@ -298,10 +311,7 @@ function timeOperations()
                     val := pitchTables[Globals.pitchTableIndex].pitchRange * val + (pitchTables[Globals.pitchTableIndex].pitchRange * (val_next - val) / columnStepCount) * cur_step
 
                     change_tune(Playing[i].sys, val, 0)
-{ if (cur_step = 0)
- debug2(val & " - ci" & column_index & " csc" & columnStepCount & " TSC" & totalStepCount)
-end if
- }
+
                 end if
 
             end if

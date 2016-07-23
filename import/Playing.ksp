@@ -8,6 +8,11 @@ macro Playing_on_init
         declare pitchTable
     end struct
 
+    struct _Zone
+        declare id
+        declare length
+    end struct
+
     struct _Playing
 
         declare sys // EVENT_ID
@@ -27,6 +32,8 @@ macro Playing_on_init
         { Time operations }
         declare startTime
 
+        // declare &_Zone zone
+
         declare &_PlayingTimeOperation timeOp
     end struct
 
@@ -35,6 +42,15 @@ macro Playing_on_init
 
 end macro
 
+macro Zone_reset(#z#)
+    #z#.id := -1
+    #z#.length := 0
+end macro
+
+macro Zone_set(#z#, #eid#)
+    #z#.id := get_event_par(#eid#, $EVENT_PAR_ZONE_ID)
+    #z#.length := get_sample_length(#z#.id)    
+end macro
 
 function Playing_startPitchTableCycle(i, string)
     if ((Playing[i].string = string or string = Const.stringCount+1) and Playing[i].timeOp.pitchTable = -1)
@@ -132,12 +148,9 @@ function Playing_getDuration(i) -> result
     declare @zone_name
     declare zone_id
 
-    if (Playing[i].playMode.slideIn = 1)
-        // @zone_name := PlayMode_getZoneName(Playing[i].string, Playing[i].fret, Playing[i].note, Globals.lastTakeIndex)
-        // zone_id := find_zone(@zone_name)
-        result := 200000
-        // if ()
-    end if
+    // if (Playing[i].playMode.slideIn = 1)
+    //     result := 0
+    // end if
     
 end function
 
@@ -151,26 +164,26 @@ function Playing_startChildren(i)
             Playing[j].playMode.duration := Playing_getDuration(j)
 
             Playing_playNote(j)
-            // volume off
-            if (active = 0)
-                change_vol(Playing[j].sys, VOLUME_MIN, 0)
-            else 
-                change_vol(Playing[i].sys, VOLUME_MIN, 0)
-            end if
-            
         end if        
     end macro
 
-    if (Playing[i].playMode.lh_Vibrato = 0)
+{   if (Playing[i].playMode.lh_Vibrato = 0)
         createChild(lh_Vibrato, 1, 0)
     end if
 
     if (Playing[i].playMode.lh_Vibrato = 1)
         createChild(lh_Vibrato, 0, 0)
     end if
-
-    if (playModeGlobal.slideIn = 1)
-        createChild(slideIn, 1, 1)
+}
+    if (playModeGlobal.slideIn > 0)
+        createChild(slideIn, playModeGlobal.slideIn, 1)
+        if (j # -1)
+            declare group_index
+            declare ev
+            group_index := Globals.lastGroupIndex
+            ev := epSpeed(V2E, Funcs.linearEq(Playing[j].playMode.slideIn, 1, 30, 127, 150, 100) / 10) 
+            set_engine_par($ENGINE_PAR_SPEED, ev, group_index, -1, -1)            
+        end if
     end if
 
     // debug2('test')
@@ -181,6 +194,9 @@ end function
 function Playing_playNote(i)
     Groups_prepare(i)
     Playing[i].sys := play_note(Playing[i].note, getVelocity(Playing[i].string, Playing[i].fret), Playing[i].playMode.offset, Playing[i].playMode.duration)
+    change_vol(Playing[i].sys, VOLUME_MIN, 0)
+    // wait(1)
+    // Zone_set(Playing[i].zone, Playing[i].sys)
 end function
 
 function Playing_getFreeSlotIndex -> result
@@ -257,6 +273,7 @@ end function
 function Playing_resetItem(i)
     Playing[i].note := -1
     Playing[i].sys := -1
+    // Zone_reset(Playing[i].zone)
     Playing[i].string := -1
     Playing[i].fret := -1
     // Playing[i].playMode.letRing := 0
@@ -319,13 +336,9 @@ function Playing_isOverlapping(string, note) -> result
     declare i
     declare tmp
     declare tmp2
-    debug("string " & string & ", note " & note)
     for i := 0 to Globals.maxVoices-1
-        debug(i & ": sys: " & Playing[i].sys & ", string " & Playing[i].string & ", note " & Playing[i].note)
         if (Playing[i].sys # -1 and Playing[i].string = string and Playing[i].note # note)
-            if (Playing[i].playMode.letRing = 0)
-                result := 1
-            end if            
+            result := 1
         end if
     end for
 end function
@@ -377,6 +390,7 @@ function Playing_stopNotesOnString(string)
     declare i
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].string = string and Playing[i].parent = -1)
+            debug("stop: " & Playing[i].sys)
             Playing_stopNote(i)
         end if
     end for

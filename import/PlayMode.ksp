@@ -17,10 +17,10 @@ macro PlayMode_on_init
         declare artCode
     end struct
 
-    declare &_PlayMode playModeLocal // this is used for setting note play mode props at the moment new note starts,
+    declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
     declare &_PlayMode playModeGlobal // this is used for keeping global play mode properties through time    
 
-    PlayMode_resetPlayMode(playModeLocal)
+    PlayMode_resetPlayMode(playMode)
     PlayMode_resetPlayMode(playModeGlobal)
     playModeGlobal.slideIn := 0
 
@@ -91,11 +91,8 @@ macro PlayMode_copy(#p#, #p2#)
     #p#.artCode := #p2#.artCode
 end macro
 
-function setPlayMode(i, velocity)
+function setPlayMode(velocity, string, note)
 
-    declare note := Playing[i].note
-    declare string := Playing[i].string
-    declare &_PlayMode playMode
     PlayMode_resetPlayMode(playMode)
 
     playMode.lh_Vibrato := 0
@@ -174,8 +171,6 @@ function setPlayMode(i, velocity)
     if (playMode.artCode = ArtsCodes.m_pu and UI.softMute = 0)
         playMode.artCode := ArtsCodes.m2_pu
     end if
-
-    PlayMode_copy(Playing[i].playMode, playMode)
 
     uiFeedbackPlayMode()
 
