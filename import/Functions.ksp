@@ -40,6 +40,10 @@ function linearEq_slideIn_from_cc(x) -> result
 	result := ((6000 / 63) * (x - 1) + 3000) / 10
 end function
 
+function getPitchBend(x) -> result
+	result := ( ( (200 + 400 * x) * 10 ) / 16383) * 100
+end function
+
 function linearEq(x, x1, y1, x2, y2, scale) -> result
 	
 	result := -1 * (scale * ((x1*y2 - x2*y1) + (y1 - y2) * x)) / (x2 - x1)

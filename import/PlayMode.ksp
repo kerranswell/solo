@@ -254,3 +254,34 @@ function PlayMode_nextNoteInit
         end if
     end if
 end function
+
+function PlayMode_setOpString(j)
+    if (Globals.opStringAuto = 1)
+        declare set_new := 1
+        declare i
+
+        for i := 0 to Globals.maxVoices-1
+            if (Playing[i].sys # -1 and Playing[i].active = 1)
+                // if pitch bend already in process, leave opString at old value.
+                // if pitch bend is zero - no bends at the moment - then opString becomes new note string
+                // ver1: but if 2 notes started simultaniously then choose string which is lower (4 is lower than 3)
+                // ver2: if 2 notes started simultaniously - we bend all strings - opString becomes 0
+                // if (Globals.pitchBend # 0 or (Playing[i].string = Globals.opString and Playing[i].string > Playing[j].string and Playing[i].startTime = Playing[j].startTime))
+                if (Globals.pitchBend # 0)
+                    set_new := 0
+                    break(i, Globals.maxVoices)
+                else if (abs(Playing[i].startTime - Playing[j].startTime) <= 5)
+                    // notes_playing := 1
+                    if (abs(Playing[i].note - Playing[j].note) <= 6 and Playing[i].string > Playing[j].string) 
+                        set_new := 0
+                    end if
+                end if
+            end if
+        end for
+
+        if (set_new = 1)
+            Globals.opString := Playing[j].string
+        end if
+
+    end if
+end function

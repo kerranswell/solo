@@ -32,9 +32,7 @@ end on
 
 macro macroTriggerPTCallbacks(#n#)
     on ui_control (UI.triggerPT#n#)
-        extControl(ExtEventType.triggerPT, #n#+1)
-
-        UI.triggerPT#n# := 0
+        extControl(ExtEventType.triggerPT, #n#)
     end on
 end macro
 
@@ -81,7 +79,7 @@ function extControl(etype, value)
                 for i := 0 to Globals.maxVoices-1
                     if (Playing[i].sys # -1 and Playing[i].timeOp.vibrato # -1)
                         Playing[i].timeOp.vibrato := -1
-                        change_tune(Playing[i].sys, 0, 0)
+                        Playing_changeTune(i, 0, 0)
                     end if
                 end for                
             end if
@@ -89,13 +87,22 @@ function extControl(etype, value)
             playModeGlobal.vibratoDepth := value
 
         case ExtEventType.triggerPT
-            declare string
-            string := value
+            Globals.opString := value
+            // declare string
+            // string := value
+            // for i := 0 to Globals.maxVoices-1
+            //     if (Playing[i].sys # -1)
+
+            //         // starting Time operation
+            //         Playing_startPitchTableCycle(i, string)
+            //     end if
+            // end for
+
+        case ExtEventType.pitchBend
+            Globals.pitchBend := Funcs.getPitchBend(value)
             for i := 0 to Globals.maxVoices-1
                 if (Playing[i].sys # -1)
-
-                    // starting Time operation
-                    Playing_startPitchTableCycle(i, string)
+                    Playing_changeTune(i, 0, 0)
                 end if
             end for
 
@@ -119,6 +126,7 @@ function extControl(etype, value)
 end function
 
 function uiFeedback(etype, value)
+    declare i
     if (etype = ExtEventType.letRing and UI.letRing # value)
         UI.letRing := value
     else if (etype = ExtEventType.rh_Muted and UI.rh_Muted # value)
@@ -131,6 +139,12 @@ function uiFeedback(etype, value)
         UI.vibratoSpeed := value
     else if (etype = ExtEventType.vibratoDepth)
         UI.vibratoDepth := value
+    else if (etype = ExtEventType.triggerPT)
+        for i := 0 to Const.stringCount
+            if (i # value)
+                UI.triggerPT[i] := 0
+            end if            
+        end for
     end if
 end function
 
@@ -142,6 +156,10 @@ function uiFeedbackPlayMode
 end function
 
 on controller
+    onController()
+end on
+
+function onController
 // debug("Before CC")
 // debug_Playing()
     select ($CC_NUM)
@@ -202,19 +220,42 @@ on controller
                 PlayMode_change(playModeGlobal, ExtEventType.slideOut, %CC[$CC_NUM])
             end if
 
+        { opString chooser }
+        case 28
+            Globals.opStringAuto := 1
+            declare v
+            v := %CC[$CC_NUM] / 10
+            if (v > Const.stringCount)
+                Globals.opStringAuto := 0
+                v := 0
+            end if
+            if (v # 0)
+                Globals.opStringAuto := 0
+                extControl(ExtEventType.triggerPT, v)
+            end if
+
+        { pitch bend }
+        case 128
+            extControl(ExtEventType.pitchBend, %CC[$CC_NUM])
+
     end select
 
     {debug_clear()
     debug_Strings()}
     // debug("After CC")
     // debug_Playing()
-    uiFeedbackPlayMode()
-end on
+    uiFeedbackPlayMode()    
+end function
 
 on listener
     select $NI_SIGNAL_TYPE
         case $NI_SIGNAL_TRANSP_STOP
             Playing_stopAllNotes()
+            Globals.opStringAuto := 1
+            extControl(ExtEventType.pitchBend, 0)
+            extControl(ExtEventType.triggerPT, 0)
+            extControl(ExtEventType.vibratoDepth, 0)
+            extControl(ExtEventType.vibratoSpeed, VIBRATO_SPEED_DEFAULT)
 
         case $NI_SIGNAL_TIMER_MS
             // happens every 1ms
@@ -279,7 +320,7 @@ function timeOperations()
                         val := val * (a / 10000) // sin returns from -10^4 to 10^4
                     end if                    
 
-                    change_tune(Playing[i].sys, val, 0)
+                    Playing_changeTune(i, val, 0)
                     Playing[i].timeOp.vibrato := Playing[i].timeOp.vibrato + timeOperationPeriods.vibrato
 
                 end if
@@ -310,7 +351,7 @@ function timeOperations()
 
                     val := pitchTables[Globals.pitchTableIndex].pitchRange * val + (pitchTables[Globals.pitchTableIndex].pitchRange * (val_next - val) / columnStepCount) * cur_step
 
-                    change_tune(Playing[i].sys, val, 0)
+                    Playing_changeTune(i, val, 0)
 
                 end if
 

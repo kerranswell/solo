@@ -74,8 +74,6 @@ function Playing_timeOperationsStartWithChilds(i)
 end function
 
 function Playing_timeOperationsStart(i)
-    Playing[i].startTime := Funcs.Time_getCurrentTime()
-
     if (Playing[i].playMode.legato = 1)
         // starting fade-in operation
         // Playing[i].timeOp.fadeIn := 0
@@ -137,6 +135,8 @@ function Playing_push(sys, _note, string, fret, active) -> result
         Playing[i].fret := fret
 
         Playing[i].active := active
+
+        Playing[i].startTime := Funcs.Time_getCurrentTime()
     end if
 
     result := i
@@ -195,6 +195,7 @@ function Playing_playNote(i)
     Groups_prepare(i)
     Playing[i].sys := play_note(Playing[i].note, getVelocity(Playing[i].string, Playing[i].fret), Playing[i].playMode.offset, Playing[i].playMode.duration)
     change_vol(Playing[i].sys, VOLUME_MIN, 0)
+    Playing_changeTune(i, 0, 0)
     // wait(1)
     // Zone_set(Playing[i].zone, Playing[i].sys)
 end function
@@ -217,6 +218,7 @@ function Playing_createChild(i, active) -> result
 
     if (j # -1)
         Playing_copySlot(i,j)
+        Playing[j].startTime := Funcs.Time_getCurrentTime()
 
         Playing[j].parent := i
 
@@ -390,7 +392,7 @@ function Playing_stopNotesOnString(string)
     declare i
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].string = string and Playing[i].parent = -1)
-            debug("stop: " & Playing[i].sys)
+            // debug("stop: " & Playing[i].sys)
             Playing_stopNote(i)
         end if
     end for
@@ -428,3 +430,13 @@ function Playing_maxVoicesReached() -> result
         result := 1
     end if    
 end function
+
+function Playing_changeTune(i, val, rel)
+    declare value := val
+    if ((Globals.opString = 0 or Globals.opString = Playing[i].string) and rel = 0)
+        value := value + Globals.pitchBend
+    end if
+
+    change_tune(Playing[i].sys, value, rel)
+end function
+

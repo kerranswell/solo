@@ -1,7 +1,7 @@
 function Const_on_init
 	family Const
 	    declare const pitchTableColumnCount := 128
-	    declare const pitchTableCount := 100
+	    declare const pitchTableCount := 1
 	    declare const stringCount := 6
 	    declare const fretCount := 25
 	    define triggerPTCount := 7
@@ -23,13 +23,18 @@ function Const_on_init
     
     family Globals
         declare takeCounts[ArtsCodes.SIZE]
-        declare const maxVoices := 100
+        declare const maxVoices := 20
         declare const maxGroups := 3
         declare lastGroupIndex := -1
         declare lastTakeIndex := -1
 
         declare pitchTableChanged := 0
         declare pitchTableIndex := -1
+
+	    declare opString := 0 // which of the strings are influenced by various operations, such as pitch bend. 0 - all strings.
+	    declare opStringAuto := 1 // auto choosing opString
+
+	    declare pitchBend := 0
     end family
 
     declare i
