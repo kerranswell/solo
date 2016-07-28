@@ -3,7 +3,174 @@ macro Board_on_init
     declare notes2strings[128]
     declare notes2frets[128]
     Board_fillTable()    
+
+    declare &_GuitarNote lastNote
+    declare &_GuitarNote nextNote
+
+    Board_resetLastNote()
+
 end macro
+
+function Board_setNote(next_note)
+    declare max_diff_from_lowest := 28; // 2 octaves + 3 notes + 1 note (-1 pos)
+    declare max_diff_from_highest := 28; // 2 octaves + 3 notes + 1 note (4th pos)
+
+    declare string := lastNote.string
+    declare new_string := string
+    declare fret := lastNote.fret
+    declare new_fret := fret
+    declare pos := playModeGlobal.pos
+    declare force_pos := -1
+    declare max_diff_manual := -1
+
+    declare playModeLegato := Playing_isOverlappingEvents(next_note)
+    declare playModeSlide := 0
+
+    if (pos = 0)
+        dec(max_diff_from_lowest)
+    end if
+
+    declare dir := 1
+
+    declare cur_note := Board_string2note(string, fret) // last note number
+    if (cur_note > next_note) 
+        dir := -1
+    end if
+
+    declare cur_finger_pos := fret - pos // last note position in finger position (eg. hand position (POS) = 5, then 8th fret is 3rd finger position)
+    declare diff := abs(next_note - cur_note) // difference between last and next notes
+    declare max_diff
+    declare possible_diff := diff
+    declare next_finger_pos
+    declare finger // number of finger which presses the string
+    declare next_finger // number of finger for next note
+    declare first_pos_note
+    // fingers: 1 is index finger, 2 is middle finger, 3 is ring finger, 4 is little finger
+
+    if (dir > 0)
+        declare f4 := 0 // can we take 4 frets as interval?
+
+        next_finger_pos := possible_diff + cur_finger_pos // estimated finger position of next note
+        // if as = 1 (or f4 = 0), this means changing string if next note is on 4th finger position.
+        // So, if you don't want to jump on next string (eg. tapping or slides) - add condition here
+        // For now, it keeps same string only if legato mode is on
+        // Also, we can't jump on next string if next finger position going to be -1 (if we are on 0th pos, except 3rd string)
+        if ((playModeLegato = 1 and abs(next_finger_pos - cur_finger_pos) <= 4) or (pos = 0 and string # 3)) 
+            f4 := 1
+        end if
+
+        first_pos_note := Board_string2note(Const.stringCount, pos-1)
+
+        max_diff := max_diff_from_lowest - abs(cur_note - first_pos_note) + f4 // if legato, then 4 frets possible, if not (0) then 3 possible in position
+        if (max_diff_manual < max_diff and max_diff_manual # -1) 
+            max_diff := max_diff_manual
+        end if
+
+        if (diff > max_diff)
+            possible_diff := max_diff
+        end if
+
+        next_finger_pos := possible_diff + cur_finger_pos // estimated finger position of next note
+
+        declare as_ := 1 - f4
+
+        declare af_ := as_ // fret offset factor equals string offset factor, except if transition contains 3rd string
+
+        // when calculating string, offset (as) depends on 3rd string: does the interval between last and next notes contains third-to-second string transition?
+        // if yes, as offset is incremented
+        if ( string >= 3 and (next_finger_pos - 5 * (string-3) > 3 + f4))
+            inc(as_);
+        end if
+
+        new_string := string - (next_finger_pos + as_) / 5
+        new_fret := pos + (next_finger_pos + as_) mod 5 - af_
+    else
+        declare fm1 := 1 // can we descend by 1 fret left from position?
+
+        if (pos = 0 or cur_finger_pos = 4)
+            fm1 := 0
+        end if
+
+        first_pos_note := Board_string2note(1, pos+4)
+
+        max_diff := max_diff_from_highest - abs(cur_note - first_pos_note) + fm1
+        if (max_diff_manual < max_diff and max_diff_manual # -1) 
+            max_diff := max_diff_manual
+        end if
+
+        if (diff > max_diff)
+            possible_diff := max_diff
+        end if
+
+        next_finger_pos := cur_finger_pos - possible_diff // estimated finger position of next note
+
+        declare as_ := 1 - fm1
+
+        declare af_ := as_ - (cur_finger_pos-3) // fret offset factor equals string offset factor, except if transition contains 3rd string
+
+        // when calculating string, offset (as) depends on 3rd string: does the interval between last and next notes contains third-to-second string transition?
+        // if yes, as offset is incremented
+        if (string <  3 and (next_finger_pos + 5 * (2-string) < 0-fm1 ))
+            inc(as_)
+        end if
+
+        new_string := string + abs( next_finger_pos - 3 - as_) / 5
+        new_fret := pos + cur_finger_pos + (next_finger_pos - 3 - as_) mod 5 + af_
+    end if
+
+    if (diff > max_diff)
+        // move pos
+        pos := new_fret + dir * (diff - max_diff)
+        new_fret := pos
+    end if
+
+    if (playModeSlide = 1 and ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 1))
+        pos := pos + dir * diff
+        new_string := string
+        new_fret := pos
+    end if
+
+    if (force_pos >= 0 and force_pos <= Const.fretCount-3)
+
+        if (pos >= force_pos-1 and pos <= force_pos+3)
+            pos := force_pos
+        end if
+    end if
+
+    if (pos > Const.fretCount - 3) 
+        pos := Const.fretCount - 3
+    end if
+    if (pos < 0) 
+        pos := 0
+    end if
+
+    next_finger := new_fret - pos + 1
+    if (next_finger > 4) 
+        next_finger := 4
+    end if
+    if (next_finger <= 0 and pos > 0) 
+        next_finger := 1
+    end if
+    if (pos = 0 and (new_fret - pos) < 4) 
+        next_finger := next_finger - 1
+    end if
+
+    nextNote.note := next_note
+    nextNote.string := new_string
+    nextNote.fret := new_fret
+
+    lastNote.note := nextNote.note
+    lastNote.string := nextNote.string
+    lastNote.fret := nextNote.fret
+
+    playModeGlobal.pos := pos
+end function
+
+function Board_resetLastNote()
+    lastNote.fret := playModeGlobal.pos
+    lastNote.string := 6
+    lastNote.note := Board_string2note(lastNote.string, lastNote.fret)
+end function
 
 function getString(n) -> result
     result := notes2strings[n]
@@ -98,4 +265,14 @@ function noteName(n) -> result
     note := n mod 12
 
     result := !noteChar[note] & octave
+end function
+
+function Board_string2note(string, fret) -> result
+
+    declare fret_offset := 0
+    if (string <= 2)
+        fret_offset := 1
+    end if
+
+    result := Const.lowestNote + fret + (Const.stringCount - string) * 5 - fret_offset
 end function

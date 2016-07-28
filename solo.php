@@ -162,7 +162,7 @@ function string2note(string, fret)
         next_finger = new_fret - pos + 1;
         if (next_finger > 4) next_finger = 4;
         if (next_finger <= 0 && pos > 0) next_finger = 1;
-        if (pos == 0) next_finger = next_finger - 1;
+        if (pos == 0 && (new_fret - pos) < 4) next_finger = next_finger - 1;
         $('#result').html("String: " + new_string + "; Fret: " + new_fret + "; Pos: " + pos + "; Finger: " + next_finger + ";");
 
     });

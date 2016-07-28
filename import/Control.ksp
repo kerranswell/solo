@@ -23,20 +23,16 @@ on ui_control (UI.vibratoDepth)
     extControl(ExtEventType.vibratoDepth, UI.vibratoDepth)
 end on
 
+on ui_control (UI.pos)
+    extControl(ExtEventType.pos, UI.pos)
+end on
+
 on ui_control (UI.debugClear)
     debug_clear()
     debug2_clear()
 
     UI.debugClear := 0
 end on
-
-macro macroTriggerPTCallbacks(#n#)
-    on ui_control (UI.triggerPT#n#)
-        extControl(ExtEventType.triggerPT, #n#)
-    end on
-end macro
-
-iterate_macro(macroTriggerPTCallbacks) := 0 to 6
 
 function extControl(etype, value)
 
@@ -46,22 +42,25 @@ function extControl(etype, value)
     select etype
 
         case ExtEventType.letRing
-            playModeGlobal.letRing := value
+            playModeGlobal.pm.letRing := value
 
         case ExtEventType.rh_Muted
-            playModeGlobal.rh_Muted := value
+            playModeGlobal.pm.rh_Muted := value
 
         case ExtEventType.altStroke
             playModeGlobal.altStroke := value
 
+        case ExtEventType.pos
+            playModeGlobal.pos := value
+
         case ExtEventType.lh_Vibrato
-            if (playModeGlobal.lh_Vibrato = 1)
-                playModeGlobal.lh_Vibrato := 0
+            if (playModeGlobal.pm.lh_Vibrato = 1)
+                playModeGlobal.pm.lh_Vibrato := 0
             else 
-                playModeGlobal.lh_Vibrato := 1
+                playModeGlobal.pm.lh_Vibrato := 1
             end if
-            Playing_vibratoTrigger(playModeGlobal.lh_Vibrato)
-            // playModeGlobal.lh_Vibrato := value
+            Playing_vibratoTrigger(playModeGlobal.pm.lh_Vibrato)
+            // playModeGlobal.pm.lh_Vibrato := value
 
         case ExtEventType.vibratoSpeed
             playModeGlobal.vibratoSpeed := value
@@ -107,7 +106,7 @@ function extControl(etype, value)
             end for
 
         case ExtEventType.slideIn
-            PlayMode_change(playModeGlobal, ExtEventType.slideIn, value)
+            PlayMode_change(playModeGlobal.pm, ExtEventType.slideIn, value)
 
 
 {        case ExtEventType.vibratoSpeed
@@ -139,20 +138,16 @@ function uiFeedback(etype, value)
         UI.vibratoSpeed := value
     else if (etype = ExtEventType.vibratoDepth)
         UI.vibratoDepth := value
-    else if (etype = ExtEventType.triggerPT)
-        for i := 0 to Const.stringCount
-            if (i # value)
-                UI.triggerPT[i] := 0
-            end if            
-        end for
+    else if (etype = ExtEventType.pos)
+        UI.pos := value
     end if
 end function
 
 function uiFeedbackPlayMode
-    uiFeedback(ExtEventType.letRing, playModeGlobal.letRing)
-    uiFeedback(ExtEventType.rh_Muted, playModeGlobal.rh_Muted)
+    uiFeedback(ExtEventType.letRing, playModeGlobal.pm.letRing)
+    uiFeedback(ExtEventType.rh_Muted, playModeGlobal.pm.rh_Muted)
     uiFeedback(ExtEventType.altStroke, playModeGlobal.altStroke)
-    uiFeedback(ExtEventType.lh_Vibrato, playModeGlobal.lh_Vibrato)
+    uiFeedback(ExtEventType.lh_Vibrato, playModeGlobal.pm.lh_Vibrato)
 end function
 
 on controller
@@ -167,11 +162,11 @@ function onController
         { Alt Stroke }
         case 20
             if (%CC[$CC_NUM] > 0)
-                playModeGlobal.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
+                playModeGlobal.pm.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
                 playModeGlobal.altStroke := 1
                 UI.pickVelocityControl := 0
             else
-                playModeGlobal.pickDown := 1
+                playModeGlobal.pm.pickDown := 1
                 playModeGlobal.altStroke := 0
                 UI.pickVelocityControl := 1
             end if
@@ -195,9 +190,9 @@ function onController
         { Let Ring }
         case 23
             if (%CC[$CC_NUM] = 0)
-                PlayMode_change(playModeGlobal, ExtEventType.letRing, 0)
+                PlayMode_change(playModeGlobal.pm, ExtEventType.letRing, 0)
             else
-                PlayMode_change(playModeGlobal, ExtEventType.letRing, 1)
+                PlayMode_change(playModeGlobal.pm, ExtEventType.letRing, 1)
             end if
 
         { Vibrato Speed }
@@ -215,9 +210,9 @@ function onController
         { Slide Out }
         case 27
             if (%CC[$CC_NUM] = 0)
-                PlayMode_change(playModeGlobal, ExtEventType.slideOut, 0)
+                PlayMode_change(playModeGlobal.pm, ExtEventType.slideOut, 0)
             else
-                PlayMode_change(playModeGlobal, ExtEventType.slideOut, %CC[$CC_NUM])
+                PlayMode_change(playModeGlobal.pm, ExtEventType.slideOut, %CC[$CC_NUM])
             end if
 
         { opString chooser }

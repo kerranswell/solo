@@ -3,7 +3,8 @@ function Const_on_init
 	    declare const pitchTableColumnCount := 128
 	    declare const pitchTableCount := 1
 	    declare const stringCount := 6
-	    declare const fretCount := 25
+        declare const fretCount := 25
+	    declare const lowestNote := 40
 	    define triggerPTCount := 7
 	end family
 

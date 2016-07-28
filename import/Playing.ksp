@@ -1,6 +1,13 @@
 
 macro Playing_on_init
 
+    struct _GuitarNote
+        declare note := -1
+        declare string
+        declare fret        
+    end struct
+
+
     // stores operation time start
     struct _PlayingTimeOperation
         declare fadeIn
@@ -16,11 +23,7 @@ macro Playing_on_init
     struct _Playing
 
         declare sys // EVENT_ID
-        declare note // actual note
-
-        declare string // string on the guitar
-        declare fret // fret taken
-
+        declare &_GuitarNote gn
         declare &_PlayMode playMode
 
         //  if # -1 than this note is a child note, connected to first taken note 
@@ -53,7 +56,7 @@ macro Zone_set(#z#, #eid#)
 end macro
 
 function Playing_startPitchTableCycle(i, string)
-    if ((Playing[i].string = string or string = Const.stringCount+1) and Playing[i].timeOp.pitchTable = -1)
+    if ((Playing[i].gn.string = string or string = Const.stringCount+1) and Playing[i].timeOp.pitchTable = -1)
         Playing[i].timeOp.pitchTable := Funcs.Time_getCurrentTime()
     end if
 end function
@@ -96,7 +99,7 @@ function Playing_getIndex(_note, string) -> result
     declare break := 0
 
     while (i < Globals.maxVoices and break = 0)
-        if (Playing[i].note = _note and (Playing[i].string = string or string = 0) and Playing[i].parent = -1)
+        if (Playing[i].gn.note = _note and (Playing[i].gn.string = string or string = 0) and Playing[i].parent = -1)
             break := 1 {found note, index will be current i. Thus before i++ we have to do i--}
             dec(i)
         end if
@@ -130,9 +133,9 @@ function Playing_push(sys, _note, string, fret, active) -> result
 
     if (i < Globals.maxVoices)
         Playing[i].sys := sys
-        Playing[i].note := _note
-        Playing[i].string := string
-        Playing[i].fret := fret
+        Playing[i].gn.note := _note
+        Playing[i].gn.string := string
+        Playing[i].gn.fret := fret
 
         Playing[i].active := active
 
@@ -175,8 +178,8 @@ function Playing_startChildren(i)
         createChild(lh_Vibrato, 0, 0)
     end if
 }
-    if (playModeGlobal.slideIn > 0)
-        createChild(slideIn, playModeGlobal.slideIn, 1)
+    if (playModeGlobal.pm.slideIn > 0)
+        createChild(slideIn, playModeGlobal.pm.slideIn, 1)
         if (j # -1)
             declare group_index
             declare ev
@@ -193,11 +196,9 @@ end function
 
 function Playing_playNote(i)
     Groups_prepare(i)
-    Playing[i].sys := play_note(Playing[i].note, getVelocity(Playing[i].string, Playing[i].fret), Playing[i].playMode.offset, Playing[i].playMode.duration)
+    Playing[i].sys := play_note(Playing[i].gn.note, getVelocity(Playing[i].gn.string, Playing[i].gn.fret), Playing[i].playMode.offset, Playing[i].playMode.duration)
     change_vol(Playing[i].sys, VOLUME_MIN, 0)
     Playing_changeTune(i, 0, 0)
-    // wait(1)
-    // Zone_set(Playing[i].zone, Playing[i].sys)
 end function
 
 function Playing_getFreeSlotIndex -> result
@@ -242,10 +243,9 @@ function Playing_copySlot(i,j)
     end macro
 
     copyProp(sys)
-    copyProp(note)
-
-    copyProp(string)
-    copyProp(fret)
+    copyProp(gn.note)
+    copyProp(gn.string)
+    copyProp(gn.fret)
 
     PlayMode_copy(Playing[j].playMode, Playing[i].playMode)
 
@@ -256,7 +256,7 @@ end function
 
 function Playing_remove(_note, string)
     declare i := 0
-    while (i < Globals.maxVoices and (Playing[i].note # _note or Playing[i].string # string))
+    while (i < Globals.maxVoices and (Playing[i].gn.note # _note or Playing[i].gn.string # string))
         inc(i)
     end while
 
@@ -273,11 +273,11 @@ function Playing_resetAll
 end function
 
 function Playing_resetItem(i)
-    Playing[i].note := -1
+    Playing[i].gn.note := -1
     Playing[i].sys := -1
     // Zone_reset(Playing[i].zone)
-    Playing[i].string := -1
-    Playing[i].fret := -1
+    Playing[i].gn.string := -1
+    Playing[i].gn.fret := -1
     // Playing[i].playMode.letRing := 0
     PlayMode_resetPlayMode(Playing[i].playMode)
 
@@ -339,7 +339,17 @@ function Playing_isOverlapping(string, note) -> result
     declare tmp
     declare tmp2
     for i := 0 to Globals.maxVoices-1
-        if (Playing[i].sys # -1 and Playing[i].string = string and Playing[i].note # note)
+        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.note # note)
+            result := 1
+        end if
+    end for
+end function
+
+function Playing_isOverlappingEvents(note) -> result
+    result := 0
+    declare i
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].sys # -1 and Playing[i].gn.note # note)
             result := 1
         end if
     end for
@@ -391,7 +401,7 @@ end function
 function Playing_stopNotesOnString(string)
     declare i
     for i := 0 to Globals.maxVoices-1
-        if (Playing[i].string = string and Playing[i].parent = -1)
+        if (Playing[i].gn.string = string and Playing[i].parent = -1)
             // debug("stop: " & Playing[i].sys)
             Playing_stopNote(i)
         end if
@@ -433,7 +443,7 @@ end function
 
 function Playing_changeTune(i, val, rel)
     declare value := val
-    if ((Globals.opString = 0 or Globals.opString = Playing[i].string) and rel = 0)
+    if ((Globals.opString = 0 or Globals.opString = Playing[i].gn.string) and rel = 0)
         value := value + Globals.pitchBend
     end if
 

@@ -10,19 +10,23 @@ macro PlayMode_on_init
         declare offset
         declare duration
 
-        declare altStroke
-        declare vibratoSpeed
-        declare vibratoDepth
-
         declare artCode
     end struct
 
+    struct _PlayModeGlobal
+        declare &_PlayMode pm
+        declare altStroke := 1
+        declare pos := 5 // left hand position
+        declare vibratoSpeed := VIBRATO_SPEED_DEFAULT
+        declare vibratoDepth := 0
+    end struct
+
     declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
-    declare &_PlayMode playModeGlobal // this is used for keeping global play mode properties through time    
+    declare &_PlayModeGlobal playModeGlobal // this is used for keeping global play mode properties through time    
 
     PlayMode_resetPlayMode(playMode)
-    PlayMode_resetPlayMode(playModeGlobal)
-    playModeGlobal.slideIn := 0
+    PlayMode_resetPlayMode(playModeGlobal.pm)
+    playModeGlobal.pm.slideIn := 0
 
     // declare zones[ArtsCodes.SIZE, 128, 3, Const.stringCount, Const.fretCount]
     // PlayMode_loadZoneIds()
@@ -65,10 +69,6 @@ macro PlayMode_resetPlayMode(#p#)
     #p#.slideIn := 0
     #p#.slideOut := 0
 
-    #p#.altStroke := 1
-    #p#.vibratoSpeed := VIBRATO_SPEED_DEFAULT
-    #p#.vibratoDepth := 0
-
     #p#.artCode := 0
 end macro
 
@@ -84,10 +84,6 @@ macro PlayMode_copy(#p#, #p2#)
     #p#.slideIn := #p2#.slideIn
     #p#.slideOut := #p2#.slideOut
 
-    #p#.altStroke := #p2#.altStroke
-    #p#.vibratoSpeed := #p2#.vibratoSpeed
-    #p#.vibratoDepth := #p2#.vibratoDepth
-
     #p#.artCode := #p2#.artCode
 end macro
 
@@ -97,8 +93,8 @@ function setPlayMode(velocity, string, note)
 
     playMode.lh_Vibrato := 0
 
-    playMode.letRing := playModeGlobal.letRing
-    playMode.pickDown := playModeGlobal.pickDown
+    playMode.letRing := playModeGlobal.pm.letRing
+    playMode.pickDown := playModeGlobal.pm.pickDown
     playMode.slideIn := 0
     playMode.slideOut := 0
 
@@ -247,10 +243,10 @@ end macro
 function PlayMode_nextNoteInit
 
     if (playModeGlobal.altStroke = 1 and UI.pickVelocityControl = 0)
-        if (playModeGlobal.pickDown = 1)
-            playModeGlobal.pickDown := 0
+        if (playModeGlobal.pm.pickDown = 1)
+            playModeGlobal.pm.pickDown := 0
         else 
-            playModeGlobal.pickDown := 1
+            playModeGlobal.pm.pickDown := 1
         end if
     end if
 end function
@@ -266,13 +262,13 @@ function PlayMode_setOpString(j)
                 // if pitch bend is zero - no bends at the moment - then opString becomes new note string
                 // ver1: but if 2 notes started simultaniously then choose string which is lower (4 is lower than 3)
                 // ver2: if 2 notes started simultaniously - we bend all strings - opString becomes 0
-                // if (Globals.pitchBend # 0 or (Playing[i].string = Globals.opString and Playing[i].string > Playing[j].string and Playing[i].startTime = Playing[j].startTime))
+                // if (Globals.pitchBend # 0 or (Playing[i].gn.string = Globals.opString and Playing[i].gn.string > Playing[j].gn.string and Playing[i].startTime = Playing[j].startTime))
                 if (Globals.pitchBend # 0)
                     set_new := 0
                     break(i, Globals.maxVoices)
                 else if (abs(Playing[i].startTime - Playing[j].startTime) <= 5)
                     // notes_playing := 1
-                    if (abs(Playing[i].note - Playing[j].note) <= 6 and Playing[i].string > Playing[j].string) 
+                    if (abs(Playing[i].gn.note - Playing[j].gn.note) <= 6 and Playing[i].gn.string > Playing[j].gn.string) 
                         set_new := 0
                     end if
                 end if
@@ -280,7 +276,7 @@ function PlayMode_setOpString(j)
         end for
 
         if (set_new = 1)
-            Globals.opString := Playing[j].string
+            Globals.opString := Playing[j].gn.string
         end if
 
     end if
