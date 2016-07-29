@@ -16,7 +16,7 @@ macro UI_on_init
         declare ui_knob vibratoDepth (0, 100, 1)
         declare ui_label label (2,6)
         declare ui_label label2 (2,6)
-        declare ui_knob pos(0,Const.fretCount-3, 1)
+        declare ui_knob pos(0,Const.fretCount-3-1, 1)
 
         declare ui_button fretboard
         declare &_Hit hits[MAX_SIMULTANEOUS_NOTES]
@@ -103,4 +103,8 @@ function UI_stopNote(i)
 	if (j >= 0)
 		UI_Hit_reset(j)
 	end if
+end function
+
+function UI_release()
+	
 end function

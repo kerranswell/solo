@@ -6,7 +6,7 @@ function debug_PlayMode(i)
 end function
 
 function debug_Playing
-    // debug_clear()
+    debug_clear()
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].sys # -1)
             debug("([" & i & "] s" & Playing[i].gn.string &"), " & "sys(" & Playing[i].sys & ", start("& Playing[i].startTime &"), " & {"), z(" & Playing[i].zone.id & ":" & Playing[i].zone.length & }"), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &")")
@@ -101,9 +101,9 @@ end function}
 
 function debug_Hits
     declare i
-    debug2_clear()
+    // debug2_clear()
 
     for i := 0 to UI.hits.SIZE-1
-        debug2("hits[" & i & "] = ( master: "& UI.hits[i].master &" )")
+        debug2("hits[" & i & "] = ( master: "& UI.hits[i].master_sys &" )")
     end for
 end function

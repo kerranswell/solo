@@ -164,6 +164,7 @@ function Board_setNote(next_note)
     lastNote.fret := nextNote.fret
 
     playModeGlobal.pos := pos
+    extControl(ExtEventType.pos, playModeGlobal.pos)
 end function
 
 function Board_resetLastNote()

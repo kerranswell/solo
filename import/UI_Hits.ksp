@@ -11,6 +11,7 @@ macro UI_Hits_on_init
 		declare type
 		declare ui_button obj
 		declare master
+		declare master_sys
 	end struct
 
 	UI_Hit_init()
@@ -38,6 +39,7 @@ end function
 function UI_Hit_reset(i)
 
 	UI.hits[i].master := -1
+	UI.hits[i].master_sys := -1
 
 	UI_Hit_setType(i, HitTypes.normal)
 
@@ -64,8 +66,9 @@ function UI_Hit_activateNew(mi)
 	i := UI_Hit_getFreeSlotIndex()
 	if (i >= 0)
 		UI.hits[i].master := mi
+		UI.hits[i].master_sys := Playing[mi].sys
 		UI_Hit_setType(i, HitTypes.normal)
-		mUI_move(UI.hits[i].obj, FRETBOARD_X + Playing[mi].gn.fret * 25 - 4, FRETBOARD_Y + Playing[mi].gn.string * 13 - 18)
+		mUI_move(UI.hits[i].obj, FRETBOARD_X + Playing[mi].gn.fret * 24 - 4, FRETBOARD_Y + Playing[mi].gn.string * 13 - 18)
 		mUI_show(UI.hits[i].obj)
 	end if
 end function
@@ -84,4 +87,23 @@ function UI_Hit_getIndexByMaster(mi) -> result
 			break(i, UI.hits.SIZE)
 		end if
 	end for
+end function
+
+function UI_Hit_getIndexByMasterSys(sys) -> result
+	declare i
+	result := -1
+	for i := 0 to UI.hits.SIZE-1
+		if (UI.hits[i].master_sys = sys)
+			result := i
+			break(i, UI.hits.SIZE)
+		end if
+	end for
+end function
+
+function UI_Hit_resetByMasterSys(sys)
+	declare i
+	i := UI_Hit_getIndexByMasterSys(sys)
+	if (i >= 0)
+		UI_Hit_reset(i)
+	end if
 end function

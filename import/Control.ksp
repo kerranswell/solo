@@ -1,5 +1,7 @@
 on ui_control (UI.rh_Muted)
     extControl(ExtEventType.rh_Muted, UI.rh_Muted)
+        debug_Hits()
+
 end on
 
 on ui_control (UI.lh_Vibrato)
@@ -24,6 +26,7 @@ end on
 
 on ui_control (UI.pos)
     extControl(ExtEventType.pos, UI.pos)
+    Board_resetLastNote()
 end on
 
 on ui_control (UI.debugClear)
@@ -261,6 +264,7 @@ on listener
             extControl(ExtEventType.triggerPT, 0)
             extControl(ExtEventType.vibratoDepth, 0)
             extControl(ExtEventType.vibratoSpeed, VIBRATO_SPEED_DEFAULT)
+            // UI_Hit_resetAll()
 
         case $NI_SIGNAL_TIMER_MS
             // happens every 1ms
@@ -277,6 +281,8 @@ end function
 function timeOperations()
     declare i
     declare now := Funcs.Time_getCurrentTime() // ms
+
+    // debug_Playing()
 
     for i := 0 to Globals.maxVoices-1
 

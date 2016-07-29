@@ -1,13 +1,6 @@
 
 macro Playing_on_init
 
-    struct _GuitarNote
-        declare note := -1
-        declare string
-        declare fret        
-    end struct
-
-
     // stores operation time start
     struct _PlayingTimeOperation
         declare fadeIn
@@ -273,6 +266,9 @@ function Playing_resetAll
 end function
 
 function Playing_resetItem(i)
+    if (Playing[i].sys > 0 and Playing[i].parent = -1)
+        UI_Hit_resetByMasterSys(Playing[i].sys)        
+    end if
     Playing[i].gn.note := -1
     Playing[i].sys := -1
     // Zone_reset(Playing[i].zone)
@@ -389,6 +385,14 @@ function Playing_getActiveIndex(i) -> result
     end if
 end function
 
+function Playing_getParentIndex(i) -> result
+    declare j
+    result := i
+    if (Playing[i].parent # -1)
+        result := Playing[i].parent
+    end if
+end function
+
 function Playing_stopAllNotes
     declare i
     for i := 0 to Globals.maxVoices-1
@@ -414,6 +418,7 @@ function Playing_stopNote(i)
 
     note_off(Playing[i].sys)
     Playing_resetItemWithChilds(i)
+    UI_stopNote(i)
 
 end function
 
