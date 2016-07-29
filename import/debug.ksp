@@ -94,7 +94,16 @@ function debug2_clear
     set_text(UI.label2, "")
 end function
 
-function debug_PitchTable
+{function debug_PitchTable
     debug2("PT Time Length: " & pitchTables[Globals.pitchTableIndex].timeLength)
     debug2("PT Pitch Range: " & pitchTables[Globals.pitchTableIndex].pitchRange)
+end function}
+
+function debug_Hits
+    declare i
+    debug2_clear()
+
+    for i := 0 to UI.hits.SIZE-1
+        debug2("hits[" & i & "] = ( master: "& UI.hits[i].master &" )")
+    end for
 end function

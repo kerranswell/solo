@@ -8,7 +8,8 @@ function Const_on_init
 	    define triggerPTCount := 7
 	end family
 
-	define FILE_EXT := ".wav"
+    define FILE_EXT := ".wav"
+    define MAX_SIMULTANEOUS_NOTES := 6
 
     const ArtsCodes
         o_pd

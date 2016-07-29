@@ -1,0 +1,87 @@
+macro UI_Hits_on_init
+
+	const HitTypes
+		normal
+	end const
+
+	declare !HitTypePictures[HitTypes.SIZE]
+	!HitTypePictures[HitTypes.normal] := "hit"
+
+	struct _Hit
+		declare type
+		declare ui_button obj
+		declare master
+	end struct
+
+	UI_Hit_init()
+
+end macro
+
+function UI_Hit_init
+	declare i
+	for i := 0 to UI.hits.SIZE-1
+		UI.hits[i].obj -> value := 1
+		UI.hits[i].obj -> text := ""
+		UI.hits[i].obj -> width := 13
+		UI.hits[i].obj -> height := 13
+		UI_Hit_reset(i)
+	end for	
+end function
+
+function UI_Hit_resetAll
+	declare i
+	for i := 0 to UI.hits.SIZE-1
+		UI_Hit_reset(i)
+	end for
+end function
+
+function UI_Hit_reset(i)
+
+	UI.hits[i].master := -1
+
+	UI_Hit_setType(i, HitTypes.normal)
+
+	mUI_move(UI.hits[i].obj, FRETBOARD_X, FRETBOARD_Y)
+	mUI_hide(UI.hits[i].obj)
+
+end function
+
+function UI_Hit_getFreeSlotIndex -> result
+	declare i
+
+	result := -1
+
+	for i := 0 to UI.hits.SIZE-1
+		if (UI.hits[i].master = -1)
+			result := i
+			break(i, UI.hits.SIZE)
+		end if
+	end for
+end function
+
+function UI_Hit_activateNew(mi)
+	declare i
+	i := UI_Hit_getFreeSlotIndex()
+	if (i >= 0)
+		UI.hits[i].master := mi
+		UI_Hit_setType(i, HitTypes.normal)
+		mUI_move(UI.hits[i].obj, FRETBOARD_X + Playing[mi].gn.fret * 25 - 4, FRETBOARD_Y + Playing[mi].gn.string * 13 - 18)
+		mUI_show(UI.hits[i].obj)
+	end if
+end function
+
+function UI_Hit_setType(i, tp)
+	UI.hits[i].type := tp
+	set_control_par_str(UI.hits[i].obj, $CONTROL_PAR_PICTURE, !HitTypePictures[tp])
+end function
+
+function UI_Hit_getIndexByMaster(mi) -> result
+	declare i
+	result := -1
+	for i := 0 to UI.hits.SIZE-1
+		if (UI.hits[i].master = mi)
+			result := i
+			break(i, UI.hits.SIZE)
+		end if
+	end for
+end function

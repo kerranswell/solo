@@ -14,7 +14,6 @@ on ui_control (UI.letRing)
     extControl(ExtEventType.letRing, UI.letRing)
 end on
 
-
 on ui_control (UI.vibratoSpeed)
     extControl(ExtEventType.vibratoSpeed, UI.vibratoSpeed)
 end on
@@ -34,6 +33,17 @@ on ui_control (UI.debugClear)
     UI.debugClear := 0
 end on
 
+on ui_control (UI.fretboard)
+    UI.fretboard->value := 1
+end on
+
+macro mUI_Hit_callback(#n#)
+    on ui_control (UI.hits.obj#n#)
+        UI.hits[#n#].obj->value := 1
+    end on    
+end macro
+iterate_macro(mUI_Hit_callback) := 0 to MAX_SIMULTANEOUS_NOTES-1
+ 
 function extControl(etype, value)
 
     declare ev
@@ -321,7 +331,7 @@ function timeOperations()
                 end if
             end if
 
-            if (Playing[i].timeOp.pitchTable # -1)
+{            if (Playing[i].timeOp.pitchTable # -1)
 
                 declare timer := now - Playing[i].timeOp.pitchTable
                 declare totalStepCount
@@ -351,6 +361,7 @@ function timeOperations()
                 end if
 
             end if
+}            
 
         end if
 
