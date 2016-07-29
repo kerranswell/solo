@@ -98,6 +98,10 @@ function setPlayMode(velocity, string, note)
     playMode.slideIn := 0
     playMode.slideOut := 0
 
+{     if (playMode.letRing = 1)
+        playMode.duration := 0
+    end if
+ }
     playMode.artCode := ArtsCodes.o_pd
 
     if (in_range(velocity, velocityArtZones.rh_Muted_Down[0], velocityArtZones.rh_Muted_Down[1]))
