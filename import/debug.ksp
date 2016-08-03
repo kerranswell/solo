@@ -99,6 +99,15 @@ end function
     debug2("PT Pitch Range: " & pitchTables[Globals.pitchTableIndex].pitchRange)
 end function}
 
+function debug_altStroke
+    debug_clear()
+    if (playModeGlobal.pm.pickDown = 1)
+        debug("Pick Down")
+    else 
+        debug("Pick Up")
+    end if
+end function
+
 function debug_Hits
     declare i
     // debug2_clear()

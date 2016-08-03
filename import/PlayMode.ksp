@@ -13,12 +13,29 @@ macro PlayMode_on_init
         declare artCode
     end struct
 
+    const Intervals
+        Eighth
+        Sixteenth
+        Demisemiquaver
+    end const
+
+    family Durations
+        declare bar
+        declare sixteenth
+        declare eighth
+        declare barStart
+        declare seq := 0
+    end family
+
     struct _PlayModeGlobal
         declare &_PlayMode pm
         declare altStroke := 1
+        declare altStrokeInterval := Intervals.Eighth
         declare pos := 5 // left hand position
         declare vibratoSpeed := VIBRATO_SPEED_DEFAULT
         declare vibratoDepth := 0
+
+        declare lastNoteStart := -1
     end struct
 
     declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
@@ -32,6 +49,19 @@ macro PlayMode_on_init
     // PlayMode_loadZoneIds()
 
 end macro
+
+function Durations_switch(run)
+    if (run = 1)
+        Durations.bar := $DURATION_BAR
+        Durations.sixteenth := $DURATION_SIXTEENTH
+        Durations.eighth := $DURATION_EIGHTH
+        Durations.barStart := $DISTANCE_BAR_START
+        Durations.seq := 1
+    else 
+        Durations.bar := $DURATION_BAR
+        Durations.seq := 0
+    end if
+end function
 
 {
 function PlayMode_loadZoneIds
@@ -108,25 +138,25 @@ function setPlayMode(velocity, string, note)
         playMode.rh_Muted := 1
         playMode.letRing := 0
         playMode.artCode := ArtsCodes.m_pd
-        if (UI.pickVelocityControl = 1)
+        if (UI.altStroke = 0)
             playMode.pickDown := 1
         end if
     else if (in_range(velocity, velocityArtZones.rh_Muted_Up[0], velocityArtZones.rh_Muted_Up[1]))
         playMode.rh_Muted := 1
         playMode.letRing := 0
         playMode.artCode := ArtsCodes.m_pd
-        if (UI.pickVelocityControl = 1)
+        if (UI.altStroke = 0)
             playMode.pickDown := 0
             playMode.artCode := ArtsCodes.m_pu
         end if
     else if (in_range(velocity, velocityArtZones.rh_Opened_Down[0], velocityArtZones.rh_Opened_Down[1]))
         playMode.rh_Muted := 0
-        if (UI.pickVelocityControl = 1)
+        if (UI.altStroke = 0)
             playMode.pickDown := 1
         end if
     else if (in_range(velocity, velocityArtZones.rh_Opened_Up[0], velocityArtZones.rh_Opened_Up[1]))
         playMode.rh_Muted := 0
-        if (UI.pickVelocityControl = 1)
+        if (UI.altStroke = 0)
             playMode.pickDown := 0
             playMode.artCode := ArtsCodes.o_pu
         end if
@@ -172,7 +202,7 @@ function setPlayMode(velocity, string, note)
         playMode.artCode := ArtsCodes.m2_pu
     end if
 
-    uiFeedbackPlayMode()
+    // uiFeedbackPlayMode()
 
 end function
 
@@ -244,15 +274,96 @@ macro PlayMode_change(#pm#, #type#, val)
     end select
 end macro
 
-function PlayMode_nextNoteInit
+// sets stroke direction according to position beat position
+function PlayMode_setStroke
+    declare interval
+    declare interval_pos
+    declare distance
 
-    if (playModeGlobal.altStroke = 1 and UI.pickVelocityControl = 0)
-        if (playModeGlobal.pm.pickDown = 1)
-            playModeGlobal.pm.pickDown := 0
-        else 
-            playModeGlobal.pm.pickDown := 1
+    if ($NI_TRANSPORT_RUNNING = 1)
+        interval := PlayMode_getIntervalRunning()
+        distance := $DISTANCE_BAR_START
+    end if
+
+    interval_pos := RoundDiv(distance, interval)
+
+    if (interval_pos mod 2 = 0)
+        playModeGlobal.pm.pickDown := 1
+    else 
+        playModeGlobal.pm.pickDown := 0
+    end if
+end function
+
+// switches stroke direction according to distance between previous note start and the new note
+function PlayMode_switchStroke()
+    declare now := Funcs.Time_getCurrentTime() // ms
+    declare distance := now - playModeGlobal.lastNoteStart
+    declare distance_index
+    declare interval
+    declare defined_index // user defined index
+    declare duration_bar
+    defined_index := PlayMode_getIntervalIndex()
+
+    if ($NI_TRANSPORT_RUNNING = 1)
+        duration_bar := $DURATION_BAR / 1000
+
+        Funcs.mQuantizeLength(distance, distance_index, duration_bar)
+
+        // eg. if user defined stroke interval is 1/16 (defined_index = 4) and distance is 1/32 (distance_index = 5) then direction needs to be switched anyway. 
+        // but if distance is 1/4 - direction is not switched
+        if (distance_index >= defined_index) 
+            declare p
+            p := Power(2, distance_index, 1, 0) // eg. 2^4, i.e. 1/16
+            interval := duration_bar / p
+            if ((distance / interval) mod 2 = 1) 
+                playModeGlobal.pm.pickDown := Funcs.reverseValue(playModeGlobal.pm.pickDown)
+            end if
         end if
     end if
+end function
+
+function PlayMode_nextNoteInit
+
+    if (playModeGlobal.altStroke = 1 and $NI_TRANSPORT_RUNNING = 1)
+
+        PlayMode_setStroke()
+        // if (playModeGlobal.lastNoteStart = -1 or abs(Funcs.Time_getCurrentTime() - playModeGlobal.lastNoteStart) >= $DURATION_BAR)
+        // else
+            // PlayMode_switchStroke()
+        // end if
+
+    end if
+end function
+
+function PlayMode_getIntervalIndex -> result
+    result := 0
+    select playModeGlobal.altStrokeInterval
+
+        case Intervals.Sixteenth
+            result := 4
+
+        case Intervals.Demisemiquaver
+            result := 5
+            
+        case Intervals.Eighth
+            result := 3
+
+    end select
+end function
+
+function PlayMode_getIntervalRunning -> result
+    select playModeGlobal.altStrokeInterval
+
+        case Intervals.Sixteenth
+            result := $DURATION_SIXTEENTH
+
+        case Intervals.Demisemiquaver
+            result := $DURATION_SIXTEENTH / 2
+            
+        case Intervals.Eighth
+            result := $DURATION_EIGHTH
+
+    end select
 end function
 
 function PlayMode_setOpString(j)

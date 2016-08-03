@@ -49,3 +49,65 @@ function linearEq(x, x1, y1, x2, y2, scale) -> result
 	result := -1 * (scale * ((x1*y2 - x2*y1) + (y1 - y2) * x)) / (x2 - x1)
 
 end function
+
+function quantizePosition(length_, duration_bar_, interval_) -> result
+	// convert to ms
+	declare length := length_ / 1000
+	declare duration_bar := duration_bar_ / 1000
+	declare interval := interval_ / 1000
+
+	result := duration_bar
+
+	// the ratio is scaled by 1000
+	declare scale := 1000
+	declare i
+	declare j := 0
+	declare min := scale
+	declare k
+	declare interval := duration_bar
+	for i := 0 to 7
+		k := (length * scale) / interval
+		if (abs(scale - k) < min) // looking for a minimum difference between 1 and length to interval ratio
+			min := abs(scale - k)
+			result := interval
+		end if
+
+		interval := interval / 2
+	end for
+
+	result := result * 1000 // convert back to microseconds
+
+end function
+
+macro mQuantizeLength(#length#, #index#, duration_bar)
+
+    declare length := #length#
+    #index# := 0
+    
+    // the ratio is scaled by 1000
+    declare scale := 1000
+    declare i
+    declare j := 0
+    declare min := scale
+    declare k
+    declare interval := duration_bar
+    for i := 0 to 7
+        k := (length * scale) / interval
+        if (abs(scale - k) < min) // looking for a minimum difference between 1 and length to interval ratio
+            min := abs(scale - k)
+            #index# := i
+            #length# := interval
+        end if
+
+        interval := interval / 2
+    end for
+
+end macro
+
+function reverseValue(val) -> result
+	if (val = 0)
+		result := 1
+	else 
+		result := 0
+	end if
+end function

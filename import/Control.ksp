@@ -36,6 +36,10 @@ on ui_control (UI.debugClear)
     UI.debugClear := 0
 end on
 
+on ui_control (UI.duration)
+    extControl(ExtEventType.duration, UI.duration)
+end on
+
 on ui_control (UI.fretboard)
     UI.fretboard->value := 1
 end on
@@ -65,6 +69,9 @@ function extControl(etype, value)
 
         case ExtEventType.pos
             playModeGlobal.pos := value
+
+        case ExtEventType.duration
+            playModeGlobal.altStrokeInterval := value
 
         case ExtEventType.lh_Vibrato
             if (playModeGlobal.pm.lh_Vibrato = 1)
@@ -153,14 +160,9 @@ function uiFeedback(etype, value)
         UI.vibratoDepth := value
     else if (etype = ExtEventType.pos)
         UI.pos := value
+    else if (etype = ExtEventType.duration)
+        UI.duration := value
     end if
-end function
-
-function uiFeedbackPlayMode
-    uiFeedback(ExtEventType.letRing, playModeGlobal.pm.letRing)
-    uiFeedback(ExtEventType.rh_Muted, playModeGlobal.pm.rh_Muted)
-    uiFeedback(ExtEventType.altStroke, playModeGlobal.altStroke)
-    uiFeedback(ExtEventType.lh_Vibrato, playModeGlobal.pm.lh_Vibrato)
 end function
 
 on controller
@@ -175,14 +177,12 @@ function onController
         { Alt Stroke }
         case 20
             if (%CC[$CC_NUM] > 0)
-                playModeGlobal.pm.pickDown := 0 {every cc event should start pick down. As pickDown inverts on note start we should set it in 0}
+                message(%CC[$CC_NUM])
                 playModeGlobal.altStroke := 1
-                UI.pickVelocityControl := 0
             else
-                playModeGlobal.pm.pickDown := 1
                 playModeGlobal.altStroke := 0
-                UI.pickVelocityControl := 1
             end if
+            extControl(ExtEventType.altStroke, playModeGlobal.altStroke)
 
         { Vibrato Trigger }
         case 21
@@ -191,6 +191,7 @@ function onController
             else 
                 Playing_vibratoTrigger(0)
             end if
+            uiFeedback(ExtEventType.lh_Vibrato, playModeGlobal.pm.lh_Vibrato)   
 
         { Stop Strings }
         case 22
@@ -207,6 +208,7 @@ function onController
             else
                 PlayMode_change(playModeGlobal.pm, ExtEventType.letRing, 1)
             end if
+            uiFeedback(ExtEventType.letRing, playModeGlobal.pm.letRing)
 
         { Vibrato Speed }
         case 24
@@ -248,31 +250,37 @@ function onController
 
     end select
 
-    {debug_clear()
-    debug_Strings()}
-    // debug("After CC")
-    // debug_Playing()
-    uiFeedbackPlayMode()    
 end function
 
 on listener
     select $NI_SIGNAL_TYPE
         case $NI_SIGNAL_TRANSP_STOP
             Playing_stopAllNotes()
+            playModeGlobal.lastNoteStart := -1
             Globals.opStringAuto := 1
             extControl(ExtEventType.pitchBend, 0)
             extControl(ExtEventType.triggerPT, 0)
             extControl(ExtEventType.vibratoDepth, 0)
             extControl(ExtEventType.vibratoSpeed, VIBRATO_SPEED_DEFAULT)
             // UI_Hit_resetAll()
+            Durations_switch(0)
+
+        case $NI_SIGNAL_TRANSP_START
+            Durations_switch(1)
 
         case $NI_SIGNAL_TIMER_MS
             // happens every 1ms
             
             timeOperations()
+            // altStroke()
 
     end select
 end on
+
+function altStroke
+    declare now := Funcs.Time_getCurrentTime() // ms
+    // if (now - )
+end function
 
 function Control_getAttackSoftness() -> result
     result := UI.attackSoftness * 300
