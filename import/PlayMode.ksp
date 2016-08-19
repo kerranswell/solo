@@ -271,6 +271,12 @@ macro PlayMode_change(#pm#, #type#, val)
             #pm#.slideIn := val
             #pm#.offset := 0
 
+        // slide out
+        case ExtEventType.slideOut
+
+            #pm#.slideOut := val
+            #pm#.offset := 0
+
     end select
 end macro
 
@@ -372,7 +378,7 @@ function PlayMode_setOpString(j)
         declare i
 
         for i := 0 to Globals.maxVoices-1
-            if (Playing[i].sys # -1 and Playing[i].active = 1)
+            if (Playing[i].sys # -1 and Playing[i].active = 1 and Playing[i].ghost = 0)
                 // if pitch bend already in process, leave opString at old value.
                 // if pitch bend is zero - no bends at the moment - then opString becomes new note string
                 // ver1: but if 2 notes started simultaniously then choose string which is lower (4 is lower than 3)

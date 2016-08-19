@@ -28,6 +28,9 @@ macro Playing_on_init
         { Time operations }
         declare startTime
 
+        // ghost note (eg. slide out sound)
+        declare ghost := 0
+
         // declare &_Zone zone
 
         declare &_PlayingTimeOperation timeOp
@@ -150,19 +153,25 @@ function Playing_getDuration(i) -> result
     
 end function
 
+macro createChild(#parent#, #p#, #v#, active)
+    j := Playing_createChild(#parent#, active)
+    if (j # -1)
+        PlayMode_change(Playing[j].playMode, ExtEventType.#p#, #v#) // preparing play mode for allowing groups
+
+        Playing[j].playMode.duration := Playing_getDuration(j)
+
+        Playing_playNote(j)
+    end if        
+end macro
+
+
+function Playing_startSlideOut(i, value)
+    declare j
+    createChild(i, slideOut, playModeGlobal.pm.slideOut, 1)
+end function
+
 function Playing_startChildren(i)
     declare j
-    macro createChild(#p#, #v#, active)
-        j := Playing_createChild(i, active)
-        if (j # -1)
-            PlayMode_change(Playing[j].playMode, ExtEventType.#p#, #v#) // preparing play mode for allowing groups
-
-            Playing[j].playMode.duration := Playing_getDuration(j)
-
-            Playing_playNote(j)
-        end if        
-    end macro
-
 {   if (Playing[i].playMode.lh_Vibrato = 0)
         createChild(lh_Vibrato, 1, 0)
     end if
@@ -172,7 +181,7 @@ function Playing_startChildren(i)
     end if
 }
     if (playModeGlobal.pm.slideIn > 0)
-        createChild(slideIn, playModeGlobal.pm.slideIn, 1)
+        createChild(i, slideIn, playModeGlobal.pm.slideIn, 1)
         if (j # -1)
             declare group_index
             declare ev
@@ -279,6 +288,7 @@ function Playing_resetItem(i)
 
     Playing[i].parent := -1
     Playing[i].active := 0
+    Playing[i].ghost := 0
 
     Playing[i].startTime := -1
     Playing[i].timeOp.fadeIn := -1
@@ -335,7 +345,7 @@ function Playing_isOverlapping(string, note) -> result
     declare tmp
     declare tmp2
     for i := 0 to Globals.maxVoices-1
-        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.note # note)
+        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.note # note and not(Playing[i].playMode.slideOut > 0 and Playing[i].active = 1))
             result := 1
         end if
     end for
@@ -451,7 +461,7 @@ function Playing_changeTune(i, val, rel)
     if ((Globals.opString = 0 or Globals.opString = Playing[i].gn.string) and rel = 0)
         value := value + Globals.pitchBend
     end if
-
+// debug("ct ("& i &"), v("& value &"), rel("& rel &")")
     change_tune(Playing[i].sys, value, rel)
 end function
 

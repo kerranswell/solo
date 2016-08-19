@@ -18,6 +18,8 @@ macro UI_on_init
         declare ui_knob pos(0,Const.fretCount-3-1, 1)
         declare ui_menu duration
 
+        declare ui_value_edit try(0, 3, 1)
+
         declare ui_button fretboard
         declare &_Hit hits[MAX_SIMULTANEOUS_NOTES]
     end family
@@ -38,7 +40,9 @@ macro UI_on_init
 	add_menu_item(UI.duration, "Sixteenth", Intervals.Sixteenth)
 	add_menu_item(UI.duration, "Demisemiquaver", Intervals.Demisemiquaver)
 	UI.duration -> value := playModeGlobal.altStrokeInterval
-   
+
+   set_text(UI.try, "Group Try")
+
     set_text(UI.label,"") 
     set_text(UI.label2,"") 
 

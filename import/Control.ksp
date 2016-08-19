@@ -128,6 +128,9 @@ function extControl(etype, value)
         case ExtEventType.slideIn
             PlayMode_change(playModeGlobal.pm, ExtEventType.slideIn, value)
 
+        case ExtEventType.slideOut
+            PlayMode_change(playModeGlobal.pm, ExtEventType.slideOut, value)
+
 
 {        case ExtEventType.vibratoSpeed
 
@@ -224,11 +227,7 @@ function onController
 
         { Slide Out }
         case 27
-            if (%CC[$CC_NUM] = 0)
-                PlayMode_change(playModeGlobal.pm, ExtEventType.slideOut, 0)
-            else
-                PlayMode_change(playModeGlobal.pm, ExtEventType.slideOut, %CC[$CC_NUM])
-            end if
+            extControl(ExtEventType.slideOut, %CC[$CC_NUM])
 
         { opString chooser }
         case 28

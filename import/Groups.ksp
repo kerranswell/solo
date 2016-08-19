@@ -24,8 +24,12 @@ function allowGroups
     end for
 
     declare r
-    r := random(min, max)
-    // r := min
+    if (UI.try = 0)
+        r := random(min, max)
+    else
+        r := UI.try - 1
+    end if
+    
     Globals.lastGroupIndex := activeGroups[r]
     Globals.lastTakeIndex := r+1
     allow_group(Globals.lastGroupIndex)

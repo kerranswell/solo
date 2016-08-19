@@ -72,7 +72,7 @@ function debug_Strings()
                 @pickDown := " dn"
             end if
 
-            debug2("n" & Playing[i].gn.note & "; string " & Playing[i].gn.string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg(" & Playing[i].playMode.legato & ") si(" & Playing[i].playMode.slideIn & ")")
+            debug2("n" & Playing[i].gn.note & "; string " & Playing[i].gn.string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg(" & Playing[i].playMode.legato & ") si(" & Playing[i].playMode.slideIn & ") so(" & Playing[i].playMode.slideOut & ") ")
         end if
     end for
     debug2("---------")  

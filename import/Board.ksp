@@ -24,6 +24,9 @@ function Board_setNote(next_note)
     declare max_diff_manual := -1
 
     declare playModeLegato := Playing_isOverlappingEvents(next_note)
+    if (Globals.pitchBend # 0)
+        playModeLegato := 0
+    end if
     declare playModeSlide := 0
 
     if (pos = 0)
