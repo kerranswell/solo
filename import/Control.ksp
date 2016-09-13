@@ -119,6 +119,7 @@ function extControl(etype, value)
 
         case ExtEventType.pitchBend
             Globals.pitchBend := Funcs.getPitchBend(value)
+            Globals.pitchBendRaw := value
             for i := 0 to Globals.maxVoices-1
                 if (Playing[i].sys # -1)
                     Playing_changeTune(i, 0, 0)
@@ -229,7 +230,7 @@ function onController
         case 27
             extControl(ExtEventType.slideOut, %CC[$CC_NUM])
 
-        { opString chooser }
+        {  ing chooser }
         case 28
             Globals.opStringAuto := 1
             declare v

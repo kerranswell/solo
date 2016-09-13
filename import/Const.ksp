@@ -36,7 +36,8 @@ function Const_on_init
 	    declare opString := 0 // which of the strings are influenced by various operations, such as pitch bend. 0 - all strings.
 	    declare opStringAuto := 1 // auto choosing opString
 
-	    declare pitchBend := 0
+        declare pitchBend := 0
+	    declare pitchBendRaw := 0
     end family
 
     declare i

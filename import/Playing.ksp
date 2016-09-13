@@ -345,7 +345,7 @@ function Playing_isOverlapping(string, note) -> result
     declare tmp
     declare tmp2
     for i := 0 to Globals.maxVoices-1
-        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.note # note and not(Playing[i].playMode.slideOut > 0 and Playing[i].active = 1))
+        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.note # note and Playing[i].ghost = 0)
             result := 1
         end if
     end for
@@ -458,10 +458,12 @@ end function
 
 function Playing_changeTune(i, val, rel)
     declare value := val
-    if ((Globals.opString = 0 or Globals.opString = Playing[i].gn.string) and rel = 0)
+    if (rel = 0)
         value := value + Globals.pitchBend
     end if
-// debug("ct ("& i &"), v("& value &"), rel("& rel &")")
-    change_tune(Playing[i].sys, value, rel)
+
+    if (Globals.opString = 0 or Globals.opString = Playing[i].gn.string)
+        change_tune(Playing[i].sys, value, rel)
+    end if
 end function
 

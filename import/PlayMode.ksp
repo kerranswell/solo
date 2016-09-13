@@ -194,14 +194,14 @@ function setPlayMode(velocity, string, note)
         end if
     end if
 
-    if (playMode.artCode = ArtsCodes.m_pd and UI.softMute = 0)
+{     if (playMode.artCode = ArtsCodes.m_pd and UI.softMute = 0)
         playMode.artCode := ArtsCodes.m2_pd
     end if
 
     if (playMode.artCode = ArtsCodes.m_pu and UI.softMute = 0)
         playMode.artCode := ArtsCodes.m2_pu
     end if
-
+ }
     // uiFeedbackPlayMode()
 
 end function

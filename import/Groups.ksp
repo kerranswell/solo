@@ -67,10 +67,10 @@ function formGroupName() -> result
     declare !rh_muted[2]
     !rh_muted[0] := "o"
     !rh_muted[1] := "m"
-    if (UI.softMute = 0)
+{     if (UI.softMute = 0)
         !rh_muted[1] := !rh_muted[1] & "2"
     end if
-
+ }
     declare !pickDown[2]
     !pickDown[0] := "_pu"
     !pickDown[1] := "_pd"

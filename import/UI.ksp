@@ -3,7 +3,7 @@ import "import/UI_Hits.ksp"
 macro UI_on_init
 
     family UI
-        declare read ui_switch softMute
+        // declare read ui_switch softMute
         declare ui_switch rh_Muted
         declare ui_switch lh_Vibrato
         declare ui_switch altStroke
@@ -46,8 +46,8 @@ macro UI_on_init
     set_text(UI.label,"") 
     set_text(UI.label2,"") 
 
-    UI.softMute := 0
-    set_text(UI.softMute, "Soft P.M.")
+    // UI.softMute := 0
+    // set_text(UI.softMute, "Soft P.M.")
 
     UI.rh_Muted := playModeGlobal.pm.rh_Muted
     set_text(UI.rh_Muted, "P.M.")
