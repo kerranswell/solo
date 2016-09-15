@@ -11,6 +11,7 @@ macro Playing_on_init
     struct _Zone
         declare id
         declare length
+        declare @name
     end struct
 
     struct _Playing
@@ -31,7 +32,7 @@ macro Playing_on_init
         // ghost note (eg. slide out sound)
         declare ghost := 0
 
-        // declare &_Zone zone
+        declare &_Zone zone
 
         declare &_PlayingTimeOperation timeOp
     end struct
@@ -46,9 +47,11 @@ macro Zone_reset(#z#)
     #z#.length := 0
 end macro
 
-macro Zone_set(#z#, #eid#)
-    #z#.id := get_event_par(#eid#, $EVENT_PAR_ZONE_ID)
-    #z#.length := get_sample_length(#z#.id)    
+macro Zone_set(i)
+    // #z#.id := get_event_par(#eid#, $EVENT_PAR_ZONE_ID)
+    // #z#.length := get_sample_length(#z#.id)    
+    Playing[i].zone.id := Board_getZoneCode(Playing[i].gn.string, Playing[i].gn.fret, Globals.lastGroupIndex)
+    Playing[i].zone.length := %zone_lengths[Playing[i].zone.id]
 end macro
 
 function Playing_startPitchTableCycle(i, string)
@@ -198,6 +201,7 @@ end function
 
 function Playing_playNote(i)
     Groups_prepare(i)
+    Zone_set(i)
     Playing[i].sys := play_note(Playing[i].gn.note, getVelocity(Playing[i].gn.string, Playing[i].gn.fret), Playing[i].playMode.offset, Playing[i].playMode.duration)
     change_vol(Playing[i].sys, VOLUME_MIN, 0)
     Playing_changeTune(i, 0, 0)

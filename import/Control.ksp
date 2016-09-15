@@ -219,16 +219,22 @@ function onController
             extControl(ExtEventType.vibratoSpeed, %CC[$CC_NUM])
 
         { Vibrato Depth }
-        case 25
+        case 1
             extControl(ExtEventType.vibratoDepth, %CC[$CC_NUM])
 
-        { Slide In }
+        { Slide In / Out }
         case 26
-            extControl(ExtEventType.slideIn, %CC[$CC_NUM])
+            declare v := %CC[$CC_NUM] - 64
+            if (v < 0) 
+                v := 0
+            end if
+            extControl(ExtEventType.slideOut, (64 - v) * 2)
 
-        { Slide Out }
-        case 27
-            extControl(ExtEventType.slideOut, %CC[$CC_NUM])
+            v := %CC[$CC_NUM]
+            if (v > 64)
+                v := 0
+            end if
+            extControl(ExtEventType.slideIn, v * 2 - 1)
 
         {  ing chooser }
         case 28
@@ -298,7 +304,12 @@ function timeOperations()
 
             if (Playing[i].playMode.slideIn > 0 and Playing[i].active = 1)
                 declare length
-                length := Funcs.linearEq(Playing[i].playMode.slideIn, 1, 300, 127, 60, 100) / 100
+                declare zlen := Playing[i].zone.length / 1000
+                if (zlen = 0) 
+                    zlen := 275
+                end if
+                // length := Funcs.linearEq(Playing[i].playMode.slideIn, 1, 600, 127, 60, 100) / 100
+                length := Funcs.linearEq(Playing[i].playMode.slideIn, 64, zlen, 127, (zlen * 10) / 46, 100) / 100
                 if (now - Playing[i].startTime >= length)
                     note_off(Playing[i].sys)
                 end if

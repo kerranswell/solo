@@ -4,8 +4,9 @@ function Const_on_init
 	    declare const pitchTableCount := 1
 	    declare const stringCount := 6
         declare const fretCount := 25
-	    declare const lowestNote := 40
-	    define triggerPTCount := 7
+        declare const lowestNote := 40
+        define triggerPTCount := 7
+	    declare const t_max := 5
 	end family
 
     define FILE_EXT := ".wav"

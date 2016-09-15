@@ -9,7 +9,7 @@ function debug_Playing
     debug_clear()
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].sys # -1)
-            debug("([" & i & "] s" & Playing[i].gn.string &"), " & "sys(" & Playing[i].sys & ", start("& Playing[i].startTime &"), " & {"), z(" & Playing[i].zone.id & ":" & Playing[i].zone.length & }"), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &")")
+            debug("([" & i & "] s" & Playing[i].gn.string &"), " & "sys(" & Playing[i].sys & ", start("& Playing[i].startTime &"), " & " z(" & Playing[i].zone.id & ":" & Playing[i].zone.length & "), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &"), so("& Playing[i].playMode.slideOut &")")
             debug("")            
         end if
     end for
