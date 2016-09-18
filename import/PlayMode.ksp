@@ -36,6 +36,7 @@ macro PlayMode_on_init
         declare vibratoDepth := 0
 
         declare lastNoteStart := -1
+        declare legato := 0
     end struct
 
     declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,

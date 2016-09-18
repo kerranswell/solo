@@ -225,16 +225,20 @@ function onController
         { Slide In / Out }
         case 26
             declare v := %CC[$CC_NUM] - 64
-            if (v < 0) 
+            if (v > 0) 
+                v := (64 - v) * 2
+            else 
                 v := 0
             end if
-            extControl(ExtEventType.slideOut, (64 - v) * 2)
+            extControl(ExtEventType.slideOut, v)
 
             v := %CC[$CC_NUM]
-            if (v > 64)
-                v := 0
+            if (v <= 64 and v > 0)
+                v := v * 2 - 1
+            else 
+                v:= 0
             end if
-            extControl(ExtEventType.slideIn, v * 2 - 1)
+            extControl(ExtEventType.slideIn, v)
 
         {  ing chooser }
         case 28

@@ -33,6 +33,11 @@ function Board_setNote(next_note)
     if (Globals.pitchBendRaw # 0)
         playModeLegato := 0
     end if
+
+    if (playModeLegato = 1)
+        // if ()
+    end if
+
     declare playModeSlide := 0
 
     if (pos = 0)
