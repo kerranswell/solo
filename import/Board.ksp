@@ -17,6 +17,36 @@ macro Board_on_init
 end macro
 
 function Board_setNote(next_note)
+    if (playModeGlobal.tapping = 1)
+        Board_setNoteTapping(next_note)
+    end if
+    else 
+        Board_setNoteStandard(next_note)
+    end if
+end function
+
+function Board_setNoteTapping(next_note)
+    declare string := lastNote.string
+    declare new_string := string
+    declare fret := lastNote.fret
+    declare new_fret := fret
+    declare pos := playModeGlobal.pos
+
+    declare cur_note := Board_string2note(string, fret) // last note number
+    declare dir := 1
+    if (cur_note > next_note) 
+        dir := -1
+    end if
+
+    if (dir > 0)
+        new_string := string - (abs(cur_note - next_note) + fret) / Const.fretCount
+    else
+        new_string := string + (fret - abs(cur_note - next_note)) / Const.fretCount
+    end if
+
+end function
+
+function Board_setNoteStandard(next_note)
     declare max_diff_from_lowest := 28; // 2 octaves + 3 notes + 1 note (-1 pos)
     declare max_diff_from_highest := 28; // 2 octaves + 3 notes + 1 note (4th pos)
 
@@ -37,8 +67,6 @@ function Board_setNote(next_note)
     if (playModeLegato = 1)
         // if ()
     end if
-
-    declare playModeSlide := 0
 
     if (pos = 0)
         dec(max_diff_from_lowest)
@@ -138,7 +166,7 @@ function Board_setNote(next_note)
         new_fret := pos
     end if
 
-    if (playModeSlide = 1 and ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 1))
+    if (playModeGlobal.slide = 1 and ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 1))
         pos := pos + dir * diff
         new_string := string
         new_fret := pos
@@ -167,6 +195,16 @@ function Board_setNote(next_note)
     end if
     if (pos = 0 and (new_fret - pos) < 4) 
         next_finger := next_finger - 1
+    end if
+
+    if (playModeLegato = 1 and lastNote.string = new_string and lastNote.fret # new_fret)
+        if (lastNote.fret < new_fret)
+            playModeGlobal.pm.legato := 1
+        else 
+            playModeGlobal.pm.legato := -1
+        end if
+    else 
+        playModeGlobal.pm.legato := 0
     end if
 
     nextNote.note := next_note

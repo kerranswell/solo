@@ -8,6 +8,7 @@ macro UI_on_init
         declare ui_switch lh_Vibrato
         declare ui_switch altStroke
         declare ui_switch letRing
+        declare ui_switch tapSamples
         declare ui_button debugClear
         declare ui_knob attackSoftness (0, 100, 1)
         // declare ui_knob vibratoSpeed (-50, 50, 1)
@@ -60,6 +61,9 @@ macro UI_on_init
 
     UI.letRing := playModeGlobal.pm.letRing
     set_text(UI.letRing, "Let Ring")
+
+    UI.tapSamples := 0
+    set_text(UI.tapSamples, "Tap Samples")
 
     UI.attackSoftness := 0
     set_text(UI.attackSoftness, "Att. Softness")

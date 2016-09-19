@@ -17,11 +17,11 @@ function Const_on_init
         o_pu
         m_pd
         m_pu
-        m2_pd
-        m2_pu
         v1
         si
         so
+        ton
+        tof
     end const
     
     family Globals
@@ -38,7 +38,7 @@ function Const_on_init
 	    declare opStringAuto := 1 // auto choosing opString
 
         declare pitchBend := 0
-	    declare pitchBendRaw := 0
+        declare pitchBendRaw := 0
     end family
 
     declare i

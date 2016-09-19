@@ -36,7 +36,8 @@ macro PlayMode_on_init
         declare vibratoDepth := 0
 
         declare lastNoteStart := -1
-        declare legato := 0
+        declare tapping := 0
+        declare slide := 0
     end struct
 
     declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
@@ -181,17 +182,20 @@ function setPlayMode(velocity, string, note)
 }
     end if
 
-    playMode.legato := 0
+    playMode.legato := playModeGlobal.pm.legato
     playMode.offset := 0
     if (playMode.rh_Muted = 0)
-        playMode.legato := Playing_isOverlapping(string, note)
+        // playMode.legato := Playing_isOverlapping(string, note)
 
-        if (playMode.legato = 1)
-            declare r
-            r := random(0, 770)
-            playMode.offset := (20 + r) * 1000 // (30-800)ms
-        else 
-            playMode.offset := Control_getAttackSoftness()
+        if (UI.tapSamples = 0)
+
+            if (playMode.legato # 0)
+                declare r
+                r := random(0, 770)
+                playMode.offset := (20 + r) * 1000 // (30-800)ms
+            else 
+                playMode.offset := Control_getAttackSoftness()
+            end if
         end if
     end if
 

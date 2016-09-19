@@ -39,7 +39,6 @@ function setActiveGroups
     declare tmp
     declare @gname
     @gname := formGroupName()
-
     declare zg := zeroGroup()
     declare takeCount := Globals.takeCounts[playMode.artCode]
 
@@ -86,6 +85,14 @@ function formGroupName() -> result
 
     if (playMode.slideOut > 0)
         result := "so"
+    end if
+
+    if (UI.tapSamples = 1)
+        if (playModeGlobal.pm.legato > 0)
+            result := "ton"
+        else if (playModeGlobal.pm.legato < 0)
+            result := "tof"
+        end if
     end if
 
 end function

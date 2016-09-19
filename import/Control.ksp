@@ -12,6 +12,10 @@ on ui_control (UI.altStroke)
     extControl(ExtEventType.altStroke, UI.altStroke)
 end on
 
+on ui_control (UI.tapping)
+    extControl(ExtEventType.tapping, UI.tapping)
+end on
+
 on ui_control (UI.letRing)
     extControl(ExtEventType.letRing, UI.letRing)
 end on
@@ -66,6 +70,9 @@ function extControl(etype, value)
 
         case ExtEventType.altStroke
             playModeGlobal.altStroke := value
+
+        case ExtEventType.tapping
+            playModeGlobal.tapping := value
 
         case ExtEventType.pos
             playModeGlobal.pos := value
@@ -156,6 +163,8 @@ function uiFeedback(etype, value)
         UI.rh_Muted := value
     else if (etype = ExtEventType.altStroke and UI.altStroke # value)
         UI.altStroke := value
+    else if (etype = ExtEventType.tapping and UI.tapping # value)
+        UI.tapping := value
     else if (etype = ExtEventType.lh_Vibrato and UI.lh_Vibrato # value)
         UI.lh_Vibrato := value
     else if (etype = ExtEventType.vibratoSpeed)
