@@ -16,12 +16,29 @@ macro Board_on_init
     Board_fillZoneLengths()
 end macro
 
-function Board_setNote(next_note)
-    if (playModeGlobal.tapping = 1)
-        Board_setNoteTapping(next_note)
+function Board_findFret(string, note) -> result
+    declare n1 := Const.lowestNote + 5 * (Const.stringCount - string)
+    if (string < 3)
+        dec(n1)
     end if
+    declare n2 := n1 + 24
+
+    result := -1
+
+    if (note >= n1 and note <= n2)
+        result := note - n1
+    end if
+end function
+
+function Board_setNote(next_note)
+    if (playModeGlobal.tapping = 1 and Globals.tappingStarted = 1)
+        Board_setNoteTapping(next_note)
     else 
         Board_setNoteStandard(next_note)
+    end if
+
+    if (playModeGlobal.tapping = 1)
+        Globals.tappingStarted := 1
     end if
 end function
 
@@ -30,20 +47,51 @@ function Board_setNoteTapping(next_note)
     declare new_string := string
     declare fret := lastNote.fret
     declare new_fret := fret
-    declare pos := playModeGlobal.pos
 
-    declare cur_note := Board_string2note(string, fret) // last note number
     declare dir := 1
+    declare cur_note := Board_string2note(string, fret) // last note number
     if (cur_note > next_note) 
         dir := -1
     end if
+    playModeGlobal.dir := dir
+    declare diff := abs(cur_note - next_note)
+    declare fret_diff := Const.fretCount - fret
 
-    if (dir > 0)
-        new_string := string - (abs(cur_note - next_note) + fret) / Const.fretCount
-    else
-        new_string := string + (fret - abs(cur_note - next_note)) / Const.fretCount
+    declare fm1 := 1
+    declare pos := playModeGlobal.pos
+    if (pos = 0)
+        fm1 := 0
     end if
 
+    new_fret := Board_findFret(string, next_note)
+    if (new_fret < pos-fm1)
+        declare i
+        if (dir > 0)
+            for i := string-1 downto 1
+                new_fret := Board_findFret(i, next_note)
+                if (new_fret >= pos-fm1)
+                    new_string := i
+                    break(i, 1)
+                end if
+            end for        
+        else 
+            for i := string+1 to Const.stringCount
+                new_fret:= Board_findFret(i, next_note)
+                if (new_fret >= pos-fm1)
+                    new_string := i
+                    break(i, Const.stringCount)
+                end if
+            end for        
+        end if
+    end if
+
+    nextNote.note := next_note
+    nextNote.string := new_string
+    nextNote.fret := new_fret
+
+    lastNote.note := nextNote.note
+    lastNote.string := nextNote.string
+    lastNote.fret := nextNote.fret
 end function
 
 function Board_setNoteStandard(next_note)
@@ -73,11 +121,11 @@ function Board_setNoteStandard(next_note)
     end if
 
     declare dir := 1
-
     declare cur_note := Board_string2note(string, fret) // last note number
     if (cur_note > next_note) 
         dir := -1
     end if
+    playModeGlobal.dir := dir
 
     declare cur_finger_pos := fret - pos // last note position in finger position (eg. hand position (POS) = 5, then 8th fret is 3rd finger position)
     declare diff := abs(next_note - cur_note) // difference between last and next notes
@@ -198,11 +246,7 @@ function Board_setNoteStandard(next_note)
     end if
 
     if (playModeLegato = 1 and lastNote.string = new_string and lastNote.fret # new_fret)
-        if (lastNote.fret < new_fret)
-            playModeGlobal.pm.legato := 1
-        else 
-            playModeGlobal.pm.legato := -1
-        end if
+        playModeGlobal.pm.legato := 1
     else 
         playModeGlobal.pm.legato := 0
     end if

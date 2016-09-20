@@ -73,6 +73,9 @@ function extControl(etype, value)
 
         case ExtEventType.tapping
             playModeGlobal.tapping := value
+            if (value = 0)
+                Globals.tappingStarted := 0
+            end if
 
         case ExtEventType.pos
             playModeGlobal.pos := value
@@ -277,6 +280,7 @@ on listener
             Playing_stopAllNotes()
             playModeGlobal.lastNoteStart := -1
             Globals.opStringAuto := 1
+            Globals.tappingStarted := 0
             extControl(ExtEventType.pitchBend, 0)
             extControl(ExtEventType.triggerPT, 0)
             extControl(ExtEventType.vibratoDepth, 0)

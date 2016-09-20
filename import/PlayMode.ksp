@@ -38,6 +38,7 @@ macro PlayMode_on_init
         declare lastNoteStart := -1
         declare tapping := 0
         declare slide := 0
+        declare dir := 1
     end struct
 
     declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
@@ -189,7 +190,7 @@ function setPlayMode(velocity, string, note)
 
         if (UI.tapSamples = 0)
 
-            if (playMode.legato # 0)
+            if (playMode.legato = 1 or playModeGlobal.tapping = 1)
                 declare r
                 r := random(0, 770)
                 playMode.offset := (20 + r) * 1000 // (30-800)ms

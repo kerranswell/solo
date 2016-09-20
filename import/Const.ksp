@@ -39,6 +39,7 @@ function Const_on_init
 
         declare pitchBend := 0
         declare pitchBendRaw := 0
+        declare tappingStarted := 0
     end family
 
     declare i
