@@ -3,7 +3,7 @@ function Groups_prepare(i)
     resetGroups()
     setActiveGroups()
     disallow_group($ALL_GROUPS)
-    allowGroups()        
+    allowGroups(i)        
 end function
 
 function resetGroups
@@ -12,22 +12,29 @@ function resetGroups
     end for
 end function
 
-function allowGroups
-
-    declare min := 0
-    declare max := Globals.maxGroups-1
-
-    for i := 0 to Globals.maxGroups-1
-        if (activeGroups[i] # -1)
-            max := i
-        end if
-    end for
-
+function allowGroups(i)
     declare r
-    if (UI.try = 0)
-        r := random(min, max)
-    else
-        r := UI.try - 1
+
+    if (Playing[i].playmode.slideUp # 0 or Playing[i].playmode.slideDown # 0)
+        r := abs(lastNote.note - nextNote.note)
+        if (r > 5 or r < 1)
+
+        end if
+    else 
+        declare min := 0
+        declare max := Globals.maxGroups-1
+
+        for i := 0 to Globals.maxGroups-1
+            if (activeGroups[i] # -1)
+                max := i
+            end if
+        end for
+
+        if (UI.try = 0)
+            r := random(min, max)
+        else
+            r := UI.try - 1
+        end if
     end if
     
     Globals.lastGroupIndex := activeGroups[r]
@@ -85,6 +92,14 @@ function formGroupName() -> result
 
     if (playMode.slideOut > 0)
         result := "so"
+    end if
+
+    if (playMode.slideUp > 0)
+        result := "su"
+    end if
+
+    if (playMode.slideDown > 0)
+        result := "sd"
     end if
 
     if (UI.tapSamples = 1 and (playModeGlobal.pm.legato = 1 or playModeGlobal.tapping = 1))

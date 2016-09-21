@@ -6,6 +6,8 @@ macro PlayMode_on_init
         declare letRing // lets string sound after release
         declare slideIn // slideIn sample triggers simultaniously with main note
         declare slideOut // slideOut sample triggers after release
+        declare slideUp // slide from one note to another
+        declare slideDown // slide from one note downto another
         declare legato
         declare offset
         declare duration
@@ -101,6 +103,8 @@ macro PlayMode_resetPlayMode(#p#)
 
     #p#.slideIn := 0
     #p#.slideOut := 0
+    #p#.slideUp := 0
+    #p#.slideDown := 0
 
     #p#.artCode := 0
 end macro
@@ -117,6 +121,9 @@ macro PlayMode_copy(#p#, #p2#)
     #p#.slideIn := #p2#.slideIn
     #p#.slideOut := #p2#.slideOut
 
+    #p#.slideUp := #p2#.slideUp
+    #p#.slideDown := #p2#.slideDown
+
     #p#.artCode := #p2#.artCode
 end macro
 
@@ -130,6 +137,8 @@ function setPlayMode(velocity, string, note)
     playMode.pickDown := playModeGlobal.pm.pickDown
     playMode.slideIn := 0
     playMode.slideOut := 0
+    playMode.slideUp := 0
+    playMode.slideDown := 0
 
 {     if (playMode.letRing = 1)
         playMode.duration := 0
@@ -281,6 +290,18 @@ macro PlayMode_change(#pm#, #type#, val)
         case ExtEventType.slideOut
 
             #pm#.slideOut := val
+            #pm#.offset := 0
+
+        // slide up
+        case ExtEventType.slideUp
+
+            #pm#.slideUp := val
+            #pm#.offset := 0
+
+        // slide down
+        case ExtEventType.slideDown
+
+            #pm#.slideDown := val
             #pm#.offset := 0
 
     end select

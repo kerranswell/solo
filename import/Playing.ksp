@@ -197,6 +197,14 @@ function Playing_startChildren(i)
         end if
     end if
 
+    if (playModeGlobal.slide = 1 and playModeGlobal.pm.legato = 1)
+        if (playModeGlobal.dir > 0)
+            createChild(i, slideUp, playModeGlobal.pm.slideUp, 1)
+        else
+            createChild(i, slideDown, playModeGlobal.pm.slideDown, 1)
+        end if        
+    end if
+
     // debug2('test')
     // debug_Playing()
 
@@ -204,10 +212,20 @@ end function
 
 function Playing_playNote(i)
     Groups_prepare(i)
-    Playing[i].sys := play_note(Playing[i].gn.note, getVelocity(Playing[i].gn.string, Playing[i].gn.fret), Playing[i].playMode.offset, Playing[i].playMode.duration)
+    declare velocity
+    velocity := Playing_getMappingVelocity(i)
+    Playing[i].sys := play_note(Playing[i].gn.note, velocity, Playing[i].playMode.offset, Playing[i].playMode.duration)
     Zone_set(i)
     change_vol(Playing[i].sys, VOLUME_MIN, 0)
     Playing_changeTune(i, 0, 0)
+end function
+
+function Playing_getMappingVelocity(i) -> result
+    if (Playing[i].playmode.slideUp # 0 or Playing[i].playmode.slideDown # 0)
+        result := getVelocity(lastNote.string, lastNote.fret)
+    else 
+        result := getVelocity(Playing[i].gn.string, Playing[i].gn.fret)
+    end if
 end function
 
 function Playing_getFreeSlotIndex -> result
@@ -474,3 +492,8 @@ function Playing_changeTune(i, val, rel)
     end if
 end function
 
+macro copyNote(#dst#, #src#)
+    #dst#.note := #src#.note
+    #dst#.string := #src#.string
+    #dst#.fret := #src#.fret    
+end macro

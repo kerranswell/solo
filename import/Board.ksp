@@ -217,10 +217,13 @@ function Board_setNoteStandard(next_note)
         new_fret := pos
     end if
 
-    if (Globals.slideStarted = 1 and playModeGlobal.slide = 1 and ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 1))
+    if (Globals.slideStarted = 1 and playModeGlobal.slide = 1 and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0))
         pos := pos + dir * diff
         new_string := string
-        new_fret := pos
+        new_fret := pos + cur_finger_pos
+        if (cur_finger_pos < 0)
+            pos := pos + cur_finger_pos
+        end if
     end if
 
     if (force_pos >= 0 and force_pos <= Const.fretCount-3)
@@ -257,10 +260,6 @@ function Board_setNoteStandard(next_note)
     nextNote.note := next_note
     nextNote.string := new_string
     nextNote.fret := new_fret
-
-    lastNote.note := nextNote.note
-    lastNote.string := nextNote.string
-    lastNote.fret := nextNote.fret
 
     playModeGlobal.pos := pos
     extControl(ExtEventType.pos, playModeGlobal.pos)
