@@ -6,10 +6,10 @@ function debug_PlayMode(i)
 end function
 
 function debug_Playing
-    debug_clear()
+    // debug_clear()
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].sys # -1)
-            debug("([" & i & "] s" & Playing[i].gn.string &"), " & "sys(" & Playing[i].sys & ", start("& Playing[i].startTime &"), " & " z(" & Playing[i].zone.id & ":" & Playing[i].zone.length & "), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &"), so("& Playing[i].playMode.slideOut &")")
+            debug("([" & i & "] s" & Playing[i].gn.string &"f"& Playing[i].gn.fret &"), " & "sys(" & Playing[i].sys & ", start("& Playing[i].startTime &"), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &"), so("& Playing[i].playMode.slideOut &"), su("& Playing[i].playMode.slideUp &")")
             debug("")            
         end if
     end for
@@ -40,7 +40,7 @@ function debug_Strings()
     declare @rh_Muted
     declare @lh_Vibrato
 
-    debug2_clear()
+    // debug2_clear()
 
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].gn.string > 0 and Playing[i].active = 1)
@@ -72,10 +72,10 @@ function debug_Strings()
                 @pickDown := " dn"
             end if
 
-            debug2("n" & Playing[i].gn.note & "; string " & Playing[i].gn.string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg(" & Playing[i].playMode.legato & ") si(" & Playing[i].playMode.slideIn & ") so(" & Playing[i].playMode.slideOut & ") ")
+            debug2("n" & Playing[i].gn.note & "; string " & Playing[i].gn.string & @pickDown & @letRing & @rh_Muted & @lh_Vibrato & " leg(" & Playing[i].playMode.legato & ") si(" & Playing[i].playMode.slideIn & ") so(" & Playing[i].playMode.slideOut & ") su(" & Playing[i].playMode.slideUp & ") ")
         end if
     end for
-    debug2("ops: " & Globals.opString)  
+    // debug2("ops: " & Globals.opString)  
     debug2("---------")  
 end function
 

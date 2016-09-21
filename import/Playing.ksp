@@ -199,8 +199,10 @@ function Playing_startChildren(i)
 
     if (playModeGlobal.slide = 1 and playModeGlobal.pm.legato = 1)
         if (playModeGlobal.dir > 0)
+            playModeGlobal.pm.slideUp := 1
             createChild(i, slideUp, playModeGlobal.pm.slideUp, 1)
         else
+            playModeGlobal.pm.slideDown := 1
             createChild(i, slideDown, playModeGlobal.pm.slideDown, 1)
         end if        
     end if
@@ -213,8 +215,10 @@ end function
 function Playing_playNote(i)
     Groups_prepare(i)
     declare velocity
+    declare note
     velocity := Playing_getMappingVelocity(i)
-    Playing[i].sys := play_note(Playing[i].gn.note, velocity, Playing[i].playMode.offset, Playing[i].playMode.duration)
+    note := Playing_getMappingNote(i)
+    Playing[i].sys := play_note(note, velocity, Playing[i].playMode.offset, Playing[i].playMode.duration)
     Zone_set(i)
     change_vol(Playing[i].sys, VOLUME_MIN, 0)
     Playing_changeTune(i, 0, 0)
@@ -225,6 +229,14 @@ function Playing_getMappingVelocity(i) -> result
         result := getVelocity(lastNote.string, lastNote.fret)
     else 
         result := getVelocity(Playing[i].gn.string, Playing[i].gn.fret)
+    end if
+end function
+
+function Playing_getMappingNote(i) -> result
+    if (Playing[i].playmode.slideUp # 0 or Playing[i].playmode.slideDown # 0)
+        result := lastNote.note
+    else 
+        result := Playing[i].gn.note
     end if
 end function
 

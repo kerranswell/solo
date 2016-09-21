@@ -91,10 +91,6 @@ function Board_setNoteTapping(next_note)
     nextNote.note := next_note
     nextNote.string := new_string
     nextNote.fret := new_fret
-
-    lastNote.note := nextNote.note
-    lastNote.string := nextNote.string
-    lastNote.fret := nextNote.fret
 end function
 
 function Board_setNoteStandard(next_note)

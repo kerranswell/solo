@@ -3,7 +3,7 @@ function Groups_prepare(i)
     resetGroups()
     setActiveGroups()
     disallow_group($ALL_GROUPS)
-    allowGroups(i)        
+    allowGroups(i)     
 end function
 
 function resetGroups
@@ -12,10 +12,10 @@ function resetGroups
     end for
 end function
 
-function allowGroups(i)
+function allowGroups(ind)
     declare r
 
-    if (Playing[i].playmode.slideUp # 0 or Playing[i].playmode.slideDown # 0)
+    if (Playing[ind].playmode.slideUp # 0 or Playing[ind].playmode.slideDown # 0)
         r := abs(lastNote.note - nextNote.note)
         if (r > 5 or r < 1)
 
@@ -36,9 +36,10 @@ function allowGroups(i)
             r := UI.try - 1
         end if
     end if
-    
     Globals.lastGroupIndex := activeGroups[r]
     Globals.lastTakeIndex := r+1
+
+debug2("group " & Globals.lastGroupIndex)
     allow_group(Globals.lastGroupIndex)
 end function
 
