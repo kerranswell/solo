@@ -22,6 +22,8 @@ function Const_on_init
         so
         ton
         tof
+        su
+        sd
     end const
     
     family Globals
@@ -40,6 +42,7 @@ function Const_on_init
         declare pitchBend := 0
         declare pitchBendRaw := 0
         declare tappingStarted := 0
+        declare slideStarted := 0
     end family
 
     declare i
@@ -47,6 +50,8 @@ function Const_on_init
         Globals.takeCounts[i] := 3
     end for
     Globals.takeCounts[ArtsCodes.v1] := 2
+    Globals.takeCounts[ArtsCodes.su] := 5
+    Globals.takeCounts[ArtsCodes.sd] := 5
 
 
 end function

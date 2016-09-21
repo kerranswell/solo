@@ -10,6 +10,7 @@ macro UI_on_init
         declare ui_switch letRing
         declare ui_switch tapSamples
         declare ui_switch tapping
+        declare ui_switch slide
         declare ui_button debugClear
         declare ui_knob attackSoftness (0, 100, 1)
         // declare ui_knob vibratoSpeed (-50, 50, 1)
@@ -62,6 +63,9 @@ macro UI_on_init
 
     UI.tapping := playModeGlobal.tapping
     set_text(UI.tapping, "Tapping")
+
+    UI.slide := playModeGlobal.slide
+    set_text(UI.slide, "Slide")
 
     UI.letRing := playModeGlobal.pm.letRing
     set_text(UI.letRing, "Let Ring")

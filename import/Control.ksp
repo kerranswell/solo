@@ -16,6 +16,10 @@ on ui_control (UI.tapping)
     extControl(ExtEventType.tapping, UI.tapping)
 end on
 
+on ui_control (UI.slide)
+    extControl(ExtEventType.slide, UI.slide)
+end on
+
 on ui_control (UI.letRing)
     extControl(ExtEventType.letRing, UI.letRing)
 end on
@@ -38,6 +42,8 @@ on ui_control (UI.debugClear)
     debug2_clear()
 
     UI.debugClear := 0
+
+    // save_array(%zone_lengths, 1)
 end on
 
 on ui_control (UI.duration)
@@ -70,6 +76,12 @@ function extControl(etype, value)
 
         case ExtEventType.altStroke
             playModeGlobal.altStroke := value
+
+        case ExtEventType.slide
+            playModeGlobal.slide := value
+            if (value = 0)
+                Globals.slideStarted := 0
+            end if
 
         case ExtEventType.tapping
             playModeGlobal.tapping := value
@@ -281,6 +293,7 @@ on listener
             playModeGlobal.lastNoteStart := -1
             Globals.opStringAuto := 1
             Globals.tappingStarted := 0
+            Globals.slideStarted := 0
             extControl(ExtEventType.pitchBend, 0)
             extControl(ExtEventType.triggerPT, 0)
             extControl(ExtEventType.vibratoDepth, 0)
