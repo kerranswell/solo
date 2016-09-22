@@ -36,10 +36,9 @@ function allowGroups(ind)
             r := UI.try - 1
         end if
     end if
+
     Globals.lastGroupIndex := activeGroups[r]
     Globals.lastTakeIndex := r+1
-
-debug2("group " & Globals.lastGroupIndex)
     allow_group(Globals.lastGroupIndex)
 end function
 
@@ -47,6 +46,7 @@ function setActiveGroups
     declare tmp
     declare @gname
     @gname := formGroupName()
+    debug2(@gname)
     declare zg := zeroGroup()
     declare takeCount := Globals.takeCounts[playMode.artCode]
 
@@ -56,7 +56,7 @@ function setActiveGroups
             tmp := -1
         end if
         if (tmp >= 0 )
-            // debug("zg: " & zg & "; gn = " & @gname & "_t" & (i+1) & "; found: " & tmp)
+            // debug("zg: " & zg & "; gn = " & @gname & "_t" & (i+1) & "; found: " & tmp)            
             activeGroups[i]  := tmp
         end if
     end for

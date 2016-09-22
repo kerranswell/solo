@@ -33,13 +33,14 @@ macro PlayMode_on_init
         declare &_PlayMode pm
         declare altStroke := 1
         declare altStrokeInterval := Intervals.Eighth
-        declare pos := 5 // left hand position
+        declare pos := 0 // left hand position
         declare vibratoSpeed := VIBRATO_SPEED_DEFAULT
         declare vibratoDepth := 0
 
         declare lastNoteStart := -1
         declare tapping := 0
         declare slide := 0
+        declare slideSpeed := 64
         declare dir := 1
     end struct
 
@@ -297,12 +298,14 @@ macro PlayMode_change(#pm#, #type#, val)
 
             #pm#.slideUp := val
             #pm#.offset := 0
+            #pm#.artCode := ArtsCodes.su
 
         // slide down
         case ExtEventType.slideDown
 
             #pm#.slideDown := val
             #pm#.offset := 0
+            #pm#.artCode := ArtsCodes.sd
 
     end select
 end macro

@@ -29,7 +29,7 @@ function Const_on_init
     family Globals
         declare takeCounts[ArtsCodes.SIZE]
         declare const maxVoices := 20
-        declare const maxGroups := 3
+        declare const maxGroups := 5
         declare lastGroupIndex := -1
         declare lastTakeIndex := -1
 

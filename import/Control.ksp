@@ -348,7 +348,10 @@ function timeOperations()
             if ((Playing[i].playMode.slideUp # 0 or Playing[i].playMode.slideDown # 0) and Playing[i].active = 1)
                 declare length
                 length := Playing[i].zone.length
-                
+                if (length = 0)
+                    length := 300
+                end if
+
                 if (now - Playing[i].startTime >= length)
                     note_off(Playing[i].sys)
                 end if

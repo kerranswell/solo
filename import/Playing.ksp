@@ -52,9 +52,11 @@ macro Zone_set(i)
     // #z#.length := get_sample_length(#z#.id)    
     // Playing[i].zone.id := Board_getZoneCode(Playing[i].gn.string, Playing[i].gn.fret, Globals.lastGroupIndex)
     // Playing[i].zone.length := %zone_lengths[Playing[i].zone.id]
+    wait(1)
     Playing[i].zone.id := get_event_par(Playing[i].sys, $EVENT_PAR_ZONE_ID)
     Playing[i].zone.length := get_sample_length(Playing[i].zone.id)
     // TODO: optimize by saving in an array sample lengths here (first run)
+    // debug2("z"&Playing[i].zone.id&": "&Playing[i].zone.length)
 end macro
 
 function Playing_startPitchTableCycle(i, string)
@@ -218,6 +220,7 @@ function Playing_playNote(i)
     declare note
     velocity := Playing_getMappingVelocity(i)
     note := Playing_getMappingNote(i)
+    // debug2("n("&note&"), v("&velocity&")")
     Playing[i].sys := play_note(note, velocity, Playing[i].playMode.offset, Playing[i].playMode.duration)
     Zone_set(i)
     change_vol(Playing[i].sys, VOLUME_MIN, 0)
