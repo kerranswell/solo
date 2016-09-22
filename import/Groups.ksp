@@ -16,7 +16,7 @@ function allowGroups(ind)
     declare r
 
     if (Playing[ind].playmode.slideUp # 0 or Playing[ind].playmode.slideDown # 0)
-        r := abs(lastNote.note - nextNote.note)
+        r := abs(lastNote.note - nextNote.note)-1
         if (r > 5 or r < 1)
 
         end if
@@ -101,6 +101,14 @@ function formGroupName() -> result
 
     if (playMode.slideDown > 0)
         result := "sd"
+    end if
+
+    if (playMode.slideUp2 > 0)
+        result := "si"
+    end if
+
+    if (playMode.slideDown2 > 0)
+        result := "so"
     end if
 
     if (UI.tapSamples = 1 and (playModeGlobal.pm.legato = 1 or playModeGlobal.tapping = 1))

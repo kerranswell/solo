@@ -6,7 +6,10 @@ function Const_on_init
         declare const fretCount := 25
         declare const lowestNote := 40
         define triggerPTCount := 7
-	    declare const t_max := 5
+        declare const t_max := 5
+        declare const maxSlideInterval := 5
+        declare const slideUp2offset := 80 * 1000
+	    declare const slideDown2duration := 200 * 1000
 	end family
 
     define FILE_EXT := ".wav"
@@ -24,6 +27,8 @@ function Const_on_init
         tof
         su
         sd
+        su2
+        sd2
     end const
     
     family Globals
@@ -43,6 +48,7 @@ function Const_on_init
         declare pitchBendRaw := 0
         declare tappingStarted := 0
         declare slideStarted := 0
+        declare posDefault := 0
     end family
 
     declare i
@@ -59,3 +65,33 @@ end function
 macro break(#i#, #v#)
 	#i# := #v#
 end macro
+
+// SLIDE SPEED AND LENGTH FUNCTIONS //
+
+function getEngineSlideSpeed(x) -> result
+    result := epSpeed(V2E, Funcs.linearEq(x, 1, 30, 127, 300, 100) / 10) 
+end function
+function getEngineSlide2Speed(x) -> result
+    result := epSpeed(V2E, Funcs.linearEq(x, 1, 30, 127, 150, 100) / 10) 
+end function
+
+function getSlideLength(speed, length) -> result
+    result := Funcs.linearEq(speed, 64, length, 127, length / 2, 100) / 100
+end function
+
+
+function getDurationForSlideDown(speed, duration) -> result
+    result := Funcs.linearEq(speed, 64, duration, 127, duration / 2, 1) / 1
+end function
+
+function getEngineSlideInSpeed(x) -> result
+    result := epSpeed(V2E, Funcs.linearEq(x, 1, 30, 127, 150, 100) / 10) 
+end function
+
+function getEngineSlideOutSpeed(x) -> result
+    result := epSpeed(V2E, Funcs.linearEq(x, 1, 30, 127, 150, 100) / 10) 
+end function
+
+function getSlideInLength(speed, length) -> result
+    result := Funcs.linearEq(speed, 64, length, 127, length / 2, 100) / 100
+end function

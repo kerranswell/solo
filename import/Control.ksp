@@ -33,7 +33,8 @@ on ui_control (UI.vibratoDepth)
 end on
 
 on ui_control (UI.pos)
-    extControl(ExtEventType.pos, UI.pos)
+    Globals.posDefault := UI.pos
+    extControl(ExtEventType.pos, UI.pos)    
     Board_resetLastNote()
 end on
 
@@ -264,6 +265,10 @@ function onController
             end if
             extControl(ExtEventType.slideIn, v)
 
+        { Slide Up / Down Speed }
+        case 27
+            playModeGlobal.slideSpeed := %CC[$CC_NUM]
+
         {  ing chooser }
         case 28
             Globals.opStringAuto := 1
@@ -294,6 +299,8 @@ on listener
             Globals.opStringAuto := 1
             Globals.tappingStarted := 0
             Globals.slideStarted := 0
+            playModeGlobal.pos := Globals.posDefault
+            extControl(ExtEventType.pos, playModeGlobal.pos)
             extControl(ExtEventType.pitchBend, 0)
             extControl(ExtEventType.triggerPT, 0)
             extControl(ExtEventType.vibratoDepth, 0)
@@ -339,20 +346,27 @@ function timeOperations()
                     zlen := 275
                 end if
                 // length := Funcs.linearEq(Playing[i].playMode.slideIn, 1, 600, 127, 60, 100) / 100
-                length := Funcs.linearEq(Playing[i].playMode.slideIn, 64, zlen, 127, (zlen * 10) / 46, 100) / 100
+                // length := Funcs.linearEq(Playing[i].playMode.slideIn, 64, zlen, 127, (zlen * 10) / 43, 100) / 100
+                length := getSlideInLength(Playing[i].playMode.slideIn, zlen)
+                // length := (Playing[i].playMode.slideIn * zlen) / 64
                 if (now - Playing[i].startTime >= length)
                     note_off(Playing[i].sys)
                 end if
             end if
 
-            if ((Playing[i].playMode.slideUp # 0 or Playing[i].playMode.slideDown # 0) and Playing[i].active = 1)
+            if ((Playing[i].playMode.slideUp # 0 or Playing[i].playMode.slideDown # 0 or Playing[i].playMode.slideUp2 # 0 or Playing[i].playMode.slideDown2 # 0) and Playing[i].active = 1)
                 declare length
-                length := Playing[i].zone.length
-                if (length = 0)
-                    length := 300
+                declare zlen := Playing[i].zone.length / 1000
+                declare pos
+                if (zlen = 0) 
+                    zlen := 400
                 end if
+                pos := get_event_par(Playing[i].sys, $EVENT_PAR_PLAY_POS) / 1000
+                // length := getSlideLength(playModeGlobal.slideSpeed, zlen)
+                // pos := (((length * 1000) / zlen) * pos) / 1000
+                // length := (playModeGlobal.slideSpeed * zlen) / 64
 
-                if (now - Playing[i].startTime >= length)
+                if ({ now - Playing[i].startTime >= length or  }pos > zlen-50)
                     note_off(Playing[i].sys)
                 end if
             end if

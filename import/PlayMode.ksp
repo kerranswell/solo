@@ -8,6 +8,8 @@ macro PlayMode_on_init
         declare slideOut // slideOut sample triggers after release
         declare slideUp // slide from one note to another
         declare slideDown // slide from one note downto another
+        declare slideUp2 // slide from one note to another using slideIn sample (for intervals more than 5 semitones)
+        declare slideDown2 // slide from one note downto another using slideOut sample (for intervals more than 5 semitones)
         declare legato
         declare offset
         declare duration
@@ -33,7 +35,7 @@ macro PlayMode_on_init
         declare &_PlayMode pm
         declare altStroke := 1
         declare altStrokeInterval := Intervals.Eighth
-        declare pos := 0 // left hand position
+        declare pos := Globals.posDefault // left hand position
         declare vibratoSpeed := VIBRATO_SPEED_DEFAULT
         declare vibratoDepth := 0
 
@@ -106,6 +108,8 @@ macro PlayMode_resetPlayMode(#p#)
     #p#.slideOut := 0
     #p#.slideUp := 0
     #p#.slideDown := 0
+    #p#.slideUp2 := 0
+    #p#.slideDown2 := 0
 
     #p#.artCode := 0
 end macro
@@ -125,6 +129,9 @@ macro PlayMode_copy(#p#, #p2#)
     #p#.slideUp := #p2#.slideUp
     #p#.slideDown := #p2#.slideDown
 
+    #p#.slideUp2 := #p2#.slideUp2
+    #p#.slideDown2 := #p2#.slideDown2
+
     #p#.artCode := #p2#.artCode
 end macro
 
@@ -140,6 +147,8 @@ function setPlayMode(velocity, string, note)
     playMode.slideOut := 0
     playMode.slideUp := 0
     playMode.slideDown := 0
+    playMode.slideUp2 := 0
+    playMode.slideDown2 := 0
 
 {     if (playMode.letRing = 1)
         playMode.duration := 0
@@ -195,7 +204,7 @@ function setPlayMode(velocity, string, note)
 
     playMode.legato := playModeGlobal.pm.legato
     playMode.offset := 0
-    if (playMode.rh_Muted = 0)
+    if (playMode.rh_Muted = 0 and playModeGlobal.slide = 0 and playMode.slideOut = 0 and playMode.slideIn = 0)
         // playMode.legato := Playing_isOverlapping(string, note)
 
         if (UI.tapSamples = 0)
@@ -208,8 +217,9 @@ function setPlayMode(velocity, string, note)
                 playMode.offset := Control_getAttackSoftness()
             end if
         end if
+        debug2("hell")
     end if
-
+debug2("offset " & playMode.offset)
 {     if (playMode.artCode = ArtsCodes.m_pd and UI.softMute = 0)
         playMode.artCode := ArtsCodes.m2_pd
     end if
@@ -306,6 +316,19 @@ macro PlayMode_change(#pm#, #type#, val)
             #pm#.slideDown := val
             #pm#.offset := 0
             #pm#.artCode := ArtsCodes.sd
+
+        case ExtEventType.slideUp2
+
+            #pm#.slideUp2 := val
+            #pm#.offset := 0
+            #pm#.artCode := ArtsCodes.su2
+
+        // slide down
+        case ExtEventType.slideDown2
+
+            #pm#.slideDown2 := val
+            #pm#.offset := 0
+            #pm#.artCode := ArtsCodes.sd2
 
     end select
 end macro
