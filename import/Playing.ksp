@@ -47,12 +47,21 @@ macro Zone_reset(#z#)
     #z#.length := 0
 end macro
 
+function Playing_setZones()
+    declare i
+    wait(1)
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].sys # -1 and Playing[i].zone.id = -1)
+            Zone_set(i)
+        end if
+    end for
+end function
+
 macro Zone_set(i)
     // #z#.id := get_event_par(#eid#, $EVENT_PAR_ZONE_ID)
     // #z#.length := get_sample_length(#z#.id)    
     // Playing[i].zone.id := Board_getZoneCode(Playing[i].gn.string, Playing[i].gn.fret, Globals.lastGroupIndex)
     // Playing[i].zone.length := %zone_lengths[Playing[i].zone.id]
-    wait(1)
     Playing[i].zone.id := get_event_par(Playing[i].sys, $EVENT_PAR_ZONE_ID)
     declare dur := Playing[i].playmode.duration
     if (dur < 0)
@@ -253,7 +262,7 @@ function Playing_playNote(i)
     // debug2("playing("& i &") " & " off(" & Playing[i].playMode.offset & "), dur("&Playing[i].playMode.duration&")")
     Playing[i].sys := play_note(note, velocity, Playing[i].playMode.offset, Playing[i].playMode.duration)
     change_vol(Playing[i].sys, VOLUME_MIN, 0)
-    Zone_set(i)
+    // Zone_set(i)
     Playing_changeTune(i, 0, 0)
 end function
 
@@ -350,7 +359,7 @@ function Playing_resetItem(i)
     end if
     Playing[i].gn.note := -1
     Playing[i].sys := -1
-    // Zone_reset(Playing[i].zone)
+    Zone_reset(Playing[i].zone)
     Playing[i].gn.string := -1
     Playing[i].gn.fret := -1
     // Playing[i].playMode.letRing := 0
