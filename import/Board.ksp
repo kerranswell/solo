@@ -5,8 +5,15 @@ macro Board_on_init
     declare notes2frets[128]
     Board_fillTable()    
 
+    struct _String
+        declare &_GuitarNote lastNote
+        declare &_GuitarNote nextNote    
+    end struct
+
     declare &_GuitarNote lastNote
-    declare &_GuitarNote nextNote
+    declare &_GuitarNote nextNote    
+    declare &_String Strings[Const.stringCount]
+
 
     Board_resetLastNote()
 
@@ -145,7 +152,7 @@ function Board_setNoteStandard(next_note)
         // For now, it keeps same string only if legato mode is on
         // Also, we can't jump on next string if next finger position going to be -1 (if we are on 0th pos, except 3rd string)
         if ((playModeLegato = 1 and abs(next_finger_pos - cur_finger_pos) <= 4) or (pos = 0 and string # 3)) 
-            f4 := 1
+            // f4 := 1
         end if
 
         first_pos_note := Board_string2note(Const.stringCount, pos-1)
