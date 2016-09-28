@@ -7,13 +7,15 @@ macro Board_on_init
 
     struct _String
         declare &_GuitarNote lastNote
-        declare &_GuitarNote nextNote    
+        declare &_GuitarNote nextNote
+        declare overlap
     end struct
 
     declare &_GuitarNote lastNote
     declare &_GuitarNote nextNote    
     declare &_String Strings[Const.stringCount]
 
+    Strings_resetAll()
 
     Board_resetLastNote()
 
@@ -47,9 +49,11 @@ function Board_setNote(next_note)
     if (playModeGlobal.tapping = 1)
         Globals.tappingStarted := 1
     end if
-    if (playModeGlobal.slide = 1)
+    if (playModeGlobal.slide > 0)
         Globals.slideStarted := 1
     end if
+
+    Strings_setNextNote()
 end function
 
 function Board_setNoteTapping(next_note)
@@ -148,7 +152,7 @@ function Board_setNoteStandard(next_note)
 
         next_finger_pos := possible_diff + cur_finger_pos // estimated finger position of next note
         // if as = 1 (or f4 = 0), this means changing string if next note is on 4th finger position.
-        // So, if you don't want to jump on next string (eg. tapping or slides) - add condition here
+        // So, if you don't want to jump on next string (eg. tapping or slides) - add cocondition here
         // For now, it keeps same string only if legato mode is on
         // Also, we can't jump on next string if next finger position going to be -1 (if we are on 0th pos, except 3rd string)
         if ((playModeLegato = 1 and abs(next_finger_pos - cur_finger_pos) <= 4) or (pos = 0 and string # 3)) 
@@ -214,7 +218,7 @@ function Board_setNoteStandard(next_note)
         new_fret := pos + cur_finger_pos + (next_finger_pos - 3 - as_) mod 5 + af_
     end if
 
-    if (Globals.slideStarted = 1 and playModeGlobal.slide = 1 and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0))
+    if (Globals.slideStarted = 1 and playModeGlobal.slide > 0 and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0))
         pos := pos + dir * diff
         new_string := string
         new_fret := pos + cur_finger_pos
@@ -253,12 +257,12 @@ function Board_setNoteStandard(next_note)
         next_finger := next_finger - 1
     end if
 
-    if (playModeLegato = 1 and lastNote.string = new_string and lastNote.fret # new_fret)
+{     if (playModeLegato = 1 and lastNote.string = new_string and lastNote.fret # new_fret)
         playModeGlobal.pm.legato := 1
     else 
         playModeGlobal.pm.legato := 0
     end if
-
+ }
     nextNote.note := next_note
     nextNote.string := new_string
     nextNote.fret := new_fret
@@ -438,4 +442,50 @@ function Board_fillZoneLengths
         end for
     end for
     
+end function
+
+function Strings_resetAll()
+    declare i
+    for i := 0 to Const.stringCount-1
+        Strings_reset(i)
+    end for
+end function
+
+function Strings_reset(i)
+    Strings[i].overlap := 0
+    mGuitarNote_reset(Strings[i].lastNote)
+    mGuitarNote_reset(Strings[i].nextNote)
+end function
+
+function Strings_analyze()
+    declare overlap
+    if (nextNote.string > 0)
+        overlap := Playing_isOverlapping(nextNote.string, nextNote.note)
+        if (overlap # -1)
+            Strings[nextNote.string-1].overlap := 1
+        else 
+            Strings[nextNote.string-1].overlap := 0
+        end if        
+    end if
+{     declare i 
+    for i := 0 to Const.stringCount-1
+        if (Playing_isOverlapping(i+1, note))
+            Strings[i].overlap := 1
+        else 
+            Strings[i].overlap := 0
+        end if
+    end for
+ }
+end function
+
+function Strings_setLastNote()
+    if (lastNote.string > 0)
+        mGuitarNote_copy(Strings[lastNote.string-1].lastNote, lastNote)
+    end if
+end function
+
+function Strings_setNextNote()
+    if (nextNote.string > 0)
+        mGuitarNote_copy(Strings[nextNote.string-1].nextNote, nextNote)
+    end if
 end function

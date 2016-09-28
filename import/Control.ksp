@@ -33,9 +33,7 @@ on ui_control (UI.vibratoDepth)
 end on
 
 on ui_control (UI.pos)
-    Globals.posDefault := UI.pos
     extControl(ExtEventType.pos, UI.pos)    
-    Board_resetLastNote()
 end on
 
 on ui_control (UI.debugClear)
@@ -91,7 +89,11 @@ function extControl(etype, value)
             end if
 
         case ExtEventType.pos
-            playModeGlobal.pos := value
+            Globals.posDefault := UI.pos
+{             if (value # playModeGlobal.pos)
+                Board_resetLastNote()
+            end if
+ }            playModeGlobal.pos := value
 
         case ExtEventType.duration
             playModeGlobal.altStrokeInterval := value
@@ -149,12 +151,12 @@ function extControl(etype, value)
                 end if
             end for
 
-        case ExtEventType.slideIn
+{         case ExtEventType.slideIn
             PlayMode_change(playModeGlobal.pm, ExtEventType.slideIn, value)
 
         case ExtEventType.slideOut
             PlayMode_change(playModeGlobal.pm, ExtEventType.slideOut, value)
-
+ }
 
 {        case ExtEventType.vibratoSpeed
 
@@ -189,6 +191,8 @@ function uiFeedback(etype, value)
         UI.vibratoDepth := value
     else if (etype = ExtEventType.pos)
         UI.pos := value
+    else if (etype = ExtEventType.slide)
+        UI.slide := value
     else if (etype = ExtEventType.duration)
         UI.duration := value
     end if
@@ -247,9 +251,15 @@ function onController
         case 1
             extControl(ExtEventType.vibratoDepth, %CC[$CC_NUM])
 
-        { Slide In / Out }
+        { Slide [ In / Out / Up / Down ] Speed }
         case 26
-            declare v := %CC[$CC_NUM] - 64
+
+            extControl(ExtEventType.slide, %CC[$CC_NUM])
+            // playModeGlobal.slideSpeed := %CC[$CC_NUM]
+{             extControl(ExtEventType.slideOut, %CC[$CC_NUM])
+            extControl(ExtEventType.slideIn, %CC[$CC_NUM])
+ }
+{             declare v := %CC[$CC_NUM] - 64
             if (v > 0) 
                 v := (64 - v) * 2
             else 
@@ -264,12 +274,12 @@ function onController
                 v:= 0
             end if
             extControl(ExtEventType.slideIn, v)
-
+ }
         { Slide Up / Down Speed }
-        case 27
+{         case 27
             playModeGlobal.slideSpeed := %CC[$CC_NUM]
-
-        {  ing chooser }
+ }
+        {  String chooser }
         case 28
             Globals.opStringAuto := 1
             declare v
@@ -282,6 +292,10 @@ function onController
                 Globals.opStringAuto := 0
                 extControl(ExtEventType.triggerPT, v)
             end if
+
+        { Pos }
+        case 29
+            extControl(ExtEventType.pos, %CC[$CC_NUM])
 
         { pitch bend }
         case 128
@@ -345,10 +359,7 @@ function timeOperations()
                 if (zlen = 0) 
                     zlen := 275
                 end if
-                // length := Funcs.linearEq(Playing[i].playMode.slideIn, 1, 600, 127, 60, 100) / 100
-                // length := Funcs.linearEq(Playing[i].playMode.slideIn, 64, zlen, 127, (zlen * 10) / 43, 100) / 100
-                length := getSlideInLength(Playing[i].playMode.slideIn, zlen)
-                // length := (Playing[i].playMode.slideIn * zlen) / 64
+                length := getSlideInLength(playModeGlobal.slide, zlen)
                 if (now - Playing[i].startTime >= length)
                     note_off(Playing[i].sys)
                 end if
@@ -362,9 +373,6 @@ function timeOperations()
                     zlen := 400
                 end if
                 pos := get_event_par(Playing[i].sys, $EVENT_PAR_PLAY_POS) / 1000
-                // length := getSlideLength(playModeGlobal.slideSpeed, zlen)
-                // pos := (((length * 1000) / zlen) * pos) / 1000
-                // length := (playModeGlobal.slideSpeed * zlen) / 64
 
                 if ({ now - Playing[i].startTime >= length or  }pos > zlen-50)
                     note_off(Playing[i].sys)

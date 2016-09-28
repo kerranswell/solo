@@ -42,7 +42,6 @@ macro PlayMode_on_init
         declare lastNoteStart := -1
         declare tapping := 0
         declare slide := 0
-        declare slideSpeed := 64
         declare dir := 1
     end struct
 
@@ -201,10 +200,10 @@ function setPlayMode(velocity, string, note)
         end if
 }
     end if
-
-    playMode.legato := playModeGlobal.pm.legato
+debug("nxt str " & nextNote.string & ", ov " & Strings[nextNote.string-1].overlap)
+    playMode.legato := Strings[nextNote.string-1].overlap
     playMode.offset := 0
-    if (playMode.rh_Muted = 0 and playModeGlobal.slide = 0 and playMode.slideOut = 0 and playMode.slideIn = 0)
+    if (playMode.rh_Muted = 0 and playModeGlobal.slide = 0)
         // playMode.legato := Playing_isOverlapping(string, note)
 
         if (UI.tapSamples = 0)
@@ -217,9 +216,8 @@ function setPlayMode(velocity, string, note)
                 playMode.offset := Control_getAttackSoftness()
             end if
         end if
-        debug2("hell")
     end if
-debug2("offset " & playMode.offset)
+
 {     if (playMode.artCode = ArtsCodes.m_pd and UI.softMute = 0)
         playMode.artCode := ArtsCodes.m2_pd
     end if
@@ -290,45 +288,6 @@ macro PlayMode_change(#pm#, #type#, val)
             end if
 
             #pm#.letRing := val
-
-        // slide in
-        case ExtEventType.slideIn
-
-            #pm#.slideIn := val
-            #pm#.offset := 0
-
-        // slide out
-        case ExtEventType.slideOut
-
-            #pm#.slideOut := val
-            #pm#.offset := 0
-
-        // slide up
-        case ExtEventType.slideUp
-
-            #pm#.slideUp := val
-            #pm#.offset := 0
-            #pm#.artCode := ArtsCodes.su
-
-        // slide down
-        case ExtEventType.slideDown
-
-            #pm#.slideDown := val
-            #pm#.offset := 0
-            #pm#.artCode := ArtsCodes.sd
-
-        case ExtEventType.slideUp2
-
-            #pm#.slideUp2 := val
-            #pm#.offset := 0
-            #pm#.artCode := ArtsCodes.su2
-
-        // slide down
-        case ExtEventType.slideDown2
-
-            #pm#.slideDown2 := val
-            #pm#.offset := 0
-            #pm#.artCode := ArtsCodes.sd2
 
     end select
 end macro

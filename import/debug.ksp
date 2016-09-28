@@ -17,6 +17,15 @@ function debug_Playing
     debug("---------")  
 end function
 
+function debug_Strings2()
+    debug2_clear()
+    for i := 0 to Const.stringCount-1
+        debug2("S" & i+1 & ": ov(" & Strings[i].overlap & "), lst(" & Strings[i].lastNote.fret & "), nxt(" & Strings[i].nextNote.fret & ") ")
+    end for
+
+    debug2("---------")  
+end function
+
 function debug_Groups
     for i := 0 to Globals.maxGroups-1
         debug2("i(" & activeGroups[i] & ") = " & group_name(activeGroups[i]))

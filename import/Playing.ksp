@@ -29,6 +29,8 @@ macro Playing_on_init
         { Time operations }
         declare startTime
 
+        declare event_velocity
+
         // ghost note (eg. slide out sound)
         declare ghost := 0
 
@@ -144,7 +146,7 @@ function Playing_getIndexBySys(sys) -> result
     end for
 end function
 
-function Playing_push(sys, _note, string, fret, active) -> result
+function Playing_push(sys, _note, string, fret, active, event_velocity) -> result
     declare i := 0
 
     while (i < Globals.maxVoices and Playing[i].sys # -1)
@@ -156,6 +158,8 @@ function Playing_push(sys, _note, string, fret, active) -> result
         Playing[i].gn.note := _note
         Playing[i].gn.string := string
         Playing[i].gn.fret := fret
+
+        Playing[i].event_velocity := event_velocity
 
         Playing[i].active := active
 
@@ -180,11 +184,9 @@ function Playing_getOffset(i) -> result
     end if
 end function
 
-macro createChild(#parent#, #p#, #v#, active)
+macro createChild(#parent#, active)
     j := Playing_createChild(#parent#, active)
     if (j # -1)
-        PlayMode_change(Playing[j].playMode, ExtEventType.#p#, #v#) // preparing play mode for allowing groups
-
         Playing[j].playMode.duration := Playing_getDuration(j)
         Playing[j].playMode.offset := Playing_getOffset(j)
     end if        
@@ -193,7 +195,7 @@ end macro
 
 function Playing_startSlideOut(i, value)
     declare j
-    createChild(i, slideOut, playModeGlobal.pm.slideOut, 1)
+    createChild(i, 1)
     Playing_playNote(j)
 end function
 
@@ -209,45 +211,54 @@ function Playing_startChildren(i)
 }
     declare group_index
     declare ev
-    if (playModeGlobal.pm.slideIn > 0)
-        createChild(i, slideIn, playModeGlobal.pm.slideIn, 1)
+
+    // Slide
+    if (playModeGlobal.slide > 0)
+
+        ev := getEngineSlideSpeed(playModeGlobal.slide)
+        createChild(i, 1)
         if (j # -1)
+            // declare overlap
+            // overlap := Playing_isOverlapping(Playing[i].gn.string, Playing[i].gn.note)
+            declare last_note := Strings[nextNote.string-1].lastNote.note
+
+            if (Strings[nextNote.string-1].overlap = 0)
+                if (Playing[j].gn.fret > 0)
+                    Playing[j].playMode.slideIn := 1
+                    Playing[j].playMode.artCode := ArtsCodes.si
+                    ev := getEngineSlideInSpeed(playModeGlobal.slide)
+                end if
+            else 
+                if (lastNote.note < Playing[i].gn.note)
+
+                    if (abs(last_note - Playing[i].gn.note) <= Const.maxSlideInterval )
+                        Playing[j].playMode.slideUp := 1
+                        Playing[j].playMode.artCode := ArtsCodes.su
+                    else 
+                        ev := getEngineSlide2Speed(playModeGlobal.slide)
+                        Playing[j].playMode.slideUp2 := 1
+                        Playing[j].playMode.artCode := ArtsCodes.su2
+                    end if
+                else 
+                    if (abs(last_note - Playing[i].gn.note) <= Const.maxSlideInterval)
+                        Playing[j].playMode.slideDown := 1
+                        Playing[j].playMode.artCode := ArtsCodes.sd
+                    else 
+                        Playing[j].playMode.slideDown2 := 1
+                        Playing[j].playMode.artCode := ArtsCodes.sd2
+                    end if                
+                end if
+            end if
+
+            if (Playing[j].playmode.duration # -1)
+                Playing[j].playmode.duration := getDurationForSlideDown(playModeGlobal.slide, Playing[j].playMode.duration)
+            end if
             Playing_playNote(j)
-            ev := getEngineSlideInSpeed(Playing[j].playMode.slideIn)            
             set_engine_par($ENGINE_PAR_SPEED, ev, Globals.lastGroupIndex, -1, -1)            
+
         end if
     end if
 
-    if (playModeGlobal.slide = 1 and playModeGlobal.pm.legato = 1)        
-        ev := getEngineSlideSpeed(playModeGlobal.slideSpeed)
-        if (playModeGlobal.dir > 0)
-            if (abs(lastNote.note - nextNote.note) <= Const.maxSlideInterval)
-                playModeGlobal.pm.slideUp := 1
-                createChild(i, slideUp, playModeGlobal.pm.slideUp, 1)
-            else 
-                ev := getEngineSlide2Speed(playModeGlobal.slideSpeed)
-                playModeGlobal.pm.slideUp2 := 1
-                createChild(i, slideUp2, playModeGlobal.pm.slideUp2, 1)
-            end if
-        else
-            // debug2("int " & abs(lastNote.note - nextNote.note))
-            if (abs(lastNote.note - nextNote.note) <= Const.maxSlideInterval)
-                playModeGlobal.pm.slideDown := 1
-                createChild(i, slideDown, playModeGlobal.pm.slideDown, 1)
-            else 
-                playModeGlobal.pm.slideDown2 := 1
-                createChild(i, slideDown2, playModeGlobal.pm.slideDown2, 1)
-            end if
-        end if        
-        if (j # -1)
-            if (Playing[j].playmode.duration # -1)
-                Playing[j].playmode.duration := getDurationForSlideDown(playModeGlobal.slideSpeed, Playing[j].playMode.duration)
-            end if
-            Playing_playNote(j)
-            set_engine_par($ENGINE_PAR_SPEED, ev, Globals.lastGroupIndex, -1, -1)            
-        end if
-    end if
-    // debug2('test')
     // debug_Playing()
 
 end function
@@ -332,6 +343,7 @@ function Playing_copySlot(i,j)
 
     copyProp(parent)
     copyProp(active)
+    copyProp(event_velocity)
 
 end function
 
@@ -368,6 +380,7 @@ function Playing_resetItem(i)
     Playing[i].parent := -1
     Playing[i].active := 0
     Playing[i].ghost := 0
+    Playing[i].event_velocity := 0
 
     Playing[i].startTime := -1
     Playing[i].timeOp.fadeIn := -1
@@ -419,13 +432,11 @@ function Playing_vibratoTrigger(ton)
 end function
 
 function Playing_isOverlapping(string, note) -> result
-    result := 0
+    result := -1
     declare i
-    declare tmp
-    declare tmp2
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.note # note and Playing[i].ghost = 0)
-            result := 1
+            result := i
         end if
     end for
 end function
