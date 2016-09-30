@@ -9,7 +9,8 @@ function Const_on_init
         declare const t_max := 5
         declare const maxSlideInterval := 5
         declare const slideUp2offset := 80 * 1000
-	    declare const slideDown2duration := 200 * 1000
+        declare const slideDown2duration := 200 * 1000
+	    declare const simTakePeriod := 20
 	end family
 
     define FILE_EXT := ".wav"

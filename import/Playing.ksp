@@ -562,3 +562,18 @@ macro copyNote(#dst#, #src#)
     #dst#.string := #src#.string
     #dst#.fret := #src#.fret    
 end macro
+
+function chooseLastNote(note)
+    declare i
+    declare min := 100
+    declare s := -1
+    for i := 0 to Const.stringCount-1
+        if (min > abs(Strings[i].lastNote.note - note))
+            min := abs(Strings[i].lastNote.note - note)
+            s := i
+        end if
+    end for
+    if (s >= 0)
+        mGuitarNote_copy(lastNote, Strings[s].lastNote)
+    end if
+end function

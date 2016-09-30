@@ -102,6 +102,7 @@ function Board_setNoteTapping(next_note)
     nextNote.note := next_note
     nextNote.string := new_string
     nextNote.fret := new_fret
+    nextNote.startTime := Funcs.Time_getCurrentTime()
 end function
 
 function Board_setNoteStandard(next_note)
@@ -218,7 +219,8 @@ function Board_setNoteStandard(next_note)
         new_fret := pos + cur_finger_pos + (next_finger_pos - 3 - as_) mod 5 + af_
     end if
 
-    if (Globals.slideStarted = 1 and playModeGlobal.slide > 0 and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0))
+// debug("last("& playModeGlobal.lastNoteStart &"), time("& Funcs.Time_getCurrentTime() &") ")
+    if (Globals.slideStarted = 1 and playModeGlobal.slide > 0 and abs(Funcs.Time_getCurrentTime() - lastNote.startTime) > Const.simTakePeriod and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0))
         pos := pos + dir * diff
         new_string := string
         new_fret := pos + cur_finger_pos
@@ -266,6 +268,7 @@ function Board_setNoteStandard(next_note)
     nextNote.note := next_note
     nextNote.string := new_string
     nextNote.fret := new_fret
+    nextNote.startTime := Funcs.Time_getCurrentTime()
 
     playModeGlobal.pos := pos
     extControl(ExtEventType.pos, playModeGlobal.pos)

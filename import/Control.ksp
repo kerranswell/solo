@@ -80,12 +80,16 @@ function extControl(etype, value)
             playModeGlobal.slide := value
             if (value = 0)
                 Globals.slideStarted := 0
+            else 
+                Globals.slideStarted := 1
             end if
 
         case ExtEventType.tapping
             playModeGlobal.tapping := value
             if (value = 0)
                 Globals.tappingStarted := 0
+            else
+                Globals.tappingStarted := 1
             end if
 
         case ExtEventType.pos
@@ -321,6 +325,9 @@ on listener
             extControl(ExtEventType.vibratoSpeed, VIBRATO_SPEED_DEFAULT)
             // UI_Hit_resetAll()
             Durations_switch(0)
+            mGuitarNote_reset(lastNote)
+            mGuitarNote_reset(nextNote)
+            Strings_resetAll()
 
         case $NI_SIGNAL_TRANSP_START
             Durations_switch(1)
