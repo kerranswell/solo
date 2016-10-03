@@ -121,8 +121,11 @@ function Board_setNoteStandard(next_note)
     declare force_pos := -1
     declare max_diff_manual := -1
 
+    // debug("ls " & string & ", lf " & fret)
+
     declare playModeLegato := Playing_isOverlappingEvents(next_note)
-    if (Globals.pitchBendRaw # 0)
+    // TODO: Const.pitchBendPossibleInterval * pitchBend UI count of semitones
+    if (abs(Globals.pitchBendRaw) > Const.pitchBendPossibleInterval)
         playModeLegato := 0
     end if
 
@@ -233,7 +236,10 @@ function Board_setNoteStandard(next_note)
 
 // debug("s " & new_string & ", f " & new_fret)
 // debug("last("& playModeGlobal.lastNoteStart &"), time("& Funcs.Time_getCurrentTime() &") ")
+// debug("st " & Globals.slideStarted & ", slide " & playModeGlobal.slide & ", " )
     if (Globals.slideStarted = 1 and playModeGlobal.slide > 0 and abs(Funcs.Time_getCurrentTime() - lastNote.startTime) > Const.simTakePeriod and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0))
+// debug("pos " & pos & ", dir " & dir & ", diff " & diff)
+
         pos := pos + dir * diff
         new_string := string
         new_fret := pos + cur_finger_pos
@@ -284,7 +290,7 @@ function Board_setNoteStandard(next_note)
     nextNote.startTime := Funcs.Time_getCurrentTime()
 
     // playModeGlobal.pos := pos
-    extControl(ExtEventType.pos, playModeGlobal.pos)
+    extControl(ExtEventType.pos, pos)
 end function
 
 function Board_resetLastNote()
