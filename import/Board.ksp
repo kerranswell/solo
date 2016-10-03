@@ -109,6 +109,10 @@ function Board_setNoteStandard(next_note)
     declare max_diff_from_lowest := 28; // 2 octaves + 3 notes + 1 note (-1 pos)
     declare max_diff_from_highest := 28; // 2 octaves + 3 notes + 1 note (4th pos)
 
+    if (lastNote.string = 0)
+        Board_resetLastNote()
+    end if
+
     declare string := lastNote.string
     declare new_string := string
     declare fret := lastNote.fret
@@ -118,7 +122,6 @@ function Board_setNoteStandard(next_note)
     declare max_diff_manual := -1
 
     declare playModeLegato := Playing_isOverlappingEvents(next_note)
-    // debug("legato: " & playModeLegato & "; pb: " & Globals.pitchBendRaw)
     if (Globals.pitchBendRaw # 0)
         playModeLegato := 0
     end if
@@ -147,6 +150,7 @@ function Board_setNoteStandard(next_note)
     declare next_finger // number of finger for next note
     declare first_pos_note
     // fingers: 1 is index finger, 2 is middle finger, 3 is ring finger, 4 is little finger
+    declare pos_ := pos
 
     if (dir > 0)
         declare f4 := 0 // can we take 4 frets as interval?
@@ -160,7 +164,11 @@ function Board_setNoteStandard(next_note)
             // f4 := 1
         end if
 
-        first_pos_note := Board_string2note(Const.stringCount, pos-1)
+        pos_ := pos-1
+        if (pos_ < 0) 
+            pos_ := 0
+        end if
+        first_pos_note := Board_string2note(Const.stringCount, pos_)
 
         max_diff := max_diff_from_lowest - abs(cur_note - first_pos_note) + f4 // if legato, then 4 frets possible, if not (0) then 3 possible in position
         if (max_diff_manual < max_diff and max_diff_manual # -1) 
@@ -172,7 +180,7 @@ function Board_setNoteStandard(next_note)
         end if
 
         next_finger_pos := possible_diff + cur_finger_pos // estimated finger position of next note
-
+// debug("cn " & cur_note & ", nn " & next_note & ", first " & first_pos_note & ", max_diff " & max_diff & ", diff " & diff & ", possible_diff " & possible_diff & ", next_finger_pos " & next_finger_pos)
         declare as_ := 1 - f4
 
         declare af_ := as_ // fret offset factor equals string offset factor, except if transition contains 3rd string
@@ -192,7 +200,11 @@ function Board_setNoteStandard(next_note)
             fm1 := 0
         end if
 
-        first_pos_note := Board_string2note(1, pos+4)
+        pos_ := pos+4
+        if (pos_ > Const.fretCount) 
+            pos_ := Const.fretCount
+        end if
+        first_pos_note := Board_string2note(1, pos_)
 
         max_diff := max_diff_from_highest - abs(cur_note - first_pos_note) + fm1
         if (max_diff_manual < max_diff and max_diff_manual # -1) 
@@ -219,6 +231,7 @@ function Board_setNoteStandard(next_note)
         new_fret := pos + cur_finger_pos + (next_finger_pos - 3 - as_) mod 5 + af_
     end if
 
+// debug("s " & new_string & ", f " & new_fret)
 // debug("last("& playModeGlobal.lastNoteStart &"), time("& Funcs.Time_getCurrentTime() &") ")
     if (Globals.slideStarted = 1 and playModeGlobal.slide > 0 and abs(Funcs.Time_getCurrentTime() - lastNote.startTime) > Const.simTakePeriod and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0))
         pos := pos + dir * diff
@@ -270,7 +283,7 @@ function Board_setNoteStandard(next_note)
     nextNote.fret := new_fret
     nextNote.startTime := Funcs.Time_getCurrentTime()
 
-    playModeGlobal.pos := pos
+    // playModeGlobal.pos := pos
     extControl(ExtEventType.pos, playModeGlobal.pos)
 end function
 
