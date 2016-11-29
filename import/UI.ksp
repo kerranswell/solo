@@ -12,7 +12,7 @@ macro UI_on_init
         declare ui_switch tapping
         declare ui_knob slide (0, 127, 1)
         declare ui_button debugClear
-        declare ui_knob attackSoftness (0, 100, 1)
+        declare ui_knob pickNoise (0, 100, 1)
         // declare ui_knob vibratoSpeed (-50, 50, 1)
         declare read ui_knob vibratoSpeed (0, 100, 1)
         declare ui_knob vibratoDepth (0, 100, 1)
@@ -73,8 +73,8 @@ macro UI_on_init
     UI.tapSamples := 0
     set_text(UI.tapSamples, "Tap Samples")
 
-    UI.attackSoftness := 0
-    set_text(UI.attackSoftness, "Att. Softness")
+    UI.pickNoise := 100
+    set_text(UI.pickNoise, "Pick Noise")
     
     UI.vibratoSpeed := VIBRATO_SPEED_DEFAULT
     set_text(UI.vibratoSpeed, "Vib. Speed")

@@ -13,6 +13,7 @@ macro PlayMode_on_init
         declare legato
         declare offset
         declare duration
+        declare pickNoise // pick noise sample
 
         declare artCode
     end struct
@@ -102,6 +103,7 @@ macro PlayMode_resetPlayMode(#p#)
     #p#.legato := 0
     #p#.offset := 0
     #p#.duration := -1
+    #p#.pickNoise := 0
 
     #p#.slideIn := 0
     #p#.slideOut := 0
@@ -121,6 +123,7 @@ macro PlayMode_copy(#p#, #p2#)
     #p#.legato := #p2#.legato
     #p#.offset := #p2#.offset
     #p#.duration := #p2#.duration
+    #p#.pickNoise := #p2#.pickNoise
 
     #p#.slideIn := #p2#.slideIn
     #p#.slideOut := #p2#.slideOut
@@ -148,6 +151,7 @@ function setPlayMode(velocity, string, note)
     playMode.slideDown := 0
     playMode.slideUp2 := 0
     playMode.slideDown2 := 0
+    playMode.pickNoise := 0
 
 {     if (playMode.letRing = 1)
         playMode.duration := 0
@@ -200,7 +204,7 @@ function setPlayMode(velocity, string, note)
         end if
 }
     end if
-debug("nxt str " & nextNote.string & ", ov " & Strings[nextNote.string-1].overlap)
+// debug("nxt str " & nextNote.string & ", ov " & Strings[nextNote.string-1].overlap)
     playMode.legato := Strings[nextNote.string-1].overlap
     playMode.offset := 0
     if (playMode.rh_Muted = 0 and playModeGlobal.slide = 0)
@@ -212,8 +216,6 @@ debug("nxt str " & nextNote.string & ", ov " & Strings[nextNote.string-1].overla
                 declare r
                 r := random(0, 770)
                 playMode.offset := (20 + r) * 1000 // (30-800)ms
-            else 
-                playMode.offset := Control_getAttackSoftness()
             end if
         end if
     end if

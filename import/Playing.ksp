@@ -69,7 +69,7 @@ macro Zone_set(i)
     if (dur < 0)
         dur := 0
     end if
-    Playing[i].zone.length := get_sample_length(Playing[i].zone.id) - Playing[i].playmode.offset - dur
+    Playing[i].zone.length := get_sample_length(Playing[i].zone.id) - 20000 - Playing[i].playmode.offset - dur
     if (Playing[i].zone.length < 0)
         Playing[i].zone.length := 0
     end if
@@ -259,6 +259,14 @@ function Playing_startChildren(i)
         end if
     end if
 
+    if (Playing[i].playmode.legato = 0 and playModeGlobal.tapping = 0 and playModeGlobal.slide = 0)
+        createChild(i, 1)
+        if (j # -1)
+            Playing[j].playMode.pickNoise := 1
+            Playing_playNote(j)
+        end if
+    end if
+
     // debug_Playing()
 
 end function
@@ -272,7 +280,9 @@ function Playing_playNote(i)
     // debug2("i("&i&"), v("&velocity&")")
     // debug2("playing("& i &") " & " off(" & Playing[i].playMode.offset & "), dur("&Playing[i].playMode.duration&")")
     Playing[i].sys := play_note(note, velocity, Playing[i].playMode.offset, Playing[i].playMode.duration)
-    change_vol(Playing[i].sys, VOLUME_MIN, 0)
+    if (Playing[i].active # 2) 
+        change_vol(Playing[i].sys, VOLUME_MIN, 0)
+    end if
     // Zone_set(i)
     Playing_changeTune(i, 0, 0)
 end function
@@ -315,11 +325,9 @@ function Playing_createChild(i, active) -> result
 
         Playing[j].parent := i
 
+        Playing[j].active := active
         if (active = 1)
-            Playing[j].active := 1
             Playing[i].active := 0
-        else 
-            Playing[j].active := 0
         end if
     else 
         message(@MSG_MAX_VOICE_REACHED)

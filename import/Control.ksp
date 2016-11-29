@@ -41,8 +41,6 @@ on ui_control (UI.debugClear)
     debug_clear()
     debug2_clear()
 
-    UI.debugClear := 0
-
     // save_array(%zone_lengths, 1)
 end on
 
@@ -311,6 +309,7 @@ function onController
 end function
 
 on listener
+            debug2("on listener")
     select $NI_SIGNAL_TYPE
         case $NI_SIGNAL_TRANSP_STOP
             Playing_stopAllNotes()
@@ -334,7 +333,7 @@ on listener
 
         case $NI_SIGNAL_TIMER_MS
             // happens every 1ms
-            
+            debug2("on timer")
             timeOperations()
             // altStroke()
 
@@ -346,8 +345,8 @@ function altStroke
     // if (now - )
 end function
 
-function Control_getAttackSoftness() -> result
-    result := UI.attackSoftness * 300
+function Control_getpickNoise() -> result
+    result := (100 - UI.pickNoise) * 400
 end function
 
 function timeOperations()
@@ -359,10 +358,25 @@ function timeOperations()
     for i := 0 to Globals.maxVoices-1
 
         if (Playing[i].sys # -1)
+            declare length
+            declare zlen
+
+debug2(i & ":: " & Playing[i].playmode.pickNoise & ", " & Playing[i].active)
+            if (Playing[i].playmode.pickNoise > 0 and Playing[i].active = 1)
+                zlen := Playing[i].zone.length / 1000
+                if (zlen = 0) 
+                    zlen := 40
+                end if
+                length := (UI.pickNoise * zlen) / 100
+                debug2(i & " len: " & length)
+                if (now - Playing[i].startTime >= length)
+                    debug2("pn off, " & i)
+                    note_off(Playing[i].sys)
+                end if                
+            end if
 
             if (Playing[i].playMode.slideIn > 0 and Playing[i].active = 1)
-                declare length
-                declare zlen := Playing[i].zone.length / 1000
+                zlen := Playing[i].zone.length / 1000
                 if (zlen = 0) 
                     zlen := 275
                 end if
@@ -373,8 +387,7 @@ function timeOperations()
             end if
 
             if ((Playing[i].playMode.slideUp # 0 or Playing[i].playMode.slideDown # 0 or Playing[i].playMode.slideUp2 # 0 or Playing[i].playMode.slideDown2 # 0) and Playing[i].active = 1)
-                declare length
-                declare zlen := Playing[i].zone.length / 1000
+                zlen := Playing[i].zone.length / 1000
                 declare pos
                 if (zlen = 0) 
                     zlen := 400
