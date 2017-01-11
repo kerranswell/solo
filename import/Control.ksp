@@ -125,7 +125,7 @@ function extControl(etype, value)
                 for i := 0 to Globals.maxVoices-1
                     if (Playing[i].sys # -1 and Playing[i].timeOp.vibrato # -1)
                         Playing[i].timeOp.vibrato := -1
-                        Playing_changeTune(i, 0, 0)
+                        Playing_changeTune(i, 0, 0, TuneTypes.vibrato)
                     end if
                 end for                
             end if
@@ -149,7 +149,7 @@ function extControl(etype, value)
             Globals.pitchBendRaw := value
             for i := 0 to Globals.maxVoices-1
                 if (Playing[i].sys # -1)
-                    Playing_changeTune(i, 0, 0)
+                    Playing_changeTune(i, Globals.pitchBend, 0, TuneTypes.bend)
                 end if
             end for
 
@@ -309,7 +309,6 @@ function onController
 end function
 
 on listener
-            debug2("on listener")
     select $NI_SIGNAL_TYPE
         case $NI_SIGNAL_TRANSP_STOP
             Playing_stopAllNotes()
@@ -333,7 +332,6 @@ on listener
 
         case $NI_SIGNAL_TIMER_MS
             // happens every 1ms
-            debug2("on timer")
             timeOperations()
             // altStroke()
 
@@ -361,16 +359,16 @@ function timeOperations()
             declare length
             declare zlen
 
-debug2(i & ":: " & Playing[i].playmode.pickNoise & ", " & Playing[i].active)
+// debug2(i & ":: " & Playing[i].playmode.pickNoise & ", " & Playing[i].active)
             if (Playing[i].playmode.pickNoise > 0 and Playing[i].active = 1)
                 zlen := Playing[i].zone.length / 1000
                 if (zlen = 0) 
                     zlen := 40
                 end if
                 length := (UI.pickNoise * zlen) / 100
-                debug2(i & " len: " & length)
+                // debug2(i & " len: " & length)
                 if (now - Playing[i].startTime >= length)
-                    debug2("pn off, " & i)
+                    // debug2("pn off, " & i)
                     note_off(Playing[i].sys)
                 end if                
             end if
@@ -419,6 +417,7 @@ debug2(i & ":: " & Playing[i].playmode.pickNoise & ", " & Playing[i].active)
             end if
 }
 
+            Globals.vibratoTune := 0
             if (Playing[i].timeOp.vibrato # -1)
                 if (now - (Playing[i].startTime + Playing[i].timeOp.vibrato) >= timeOperationPeriods.vibrato)
 
@@ -434,7 +433,9 @@ debug2(i & ":: " & Playing[i].playmode.pickNoise & ", " & Playing[i].active)
                         val := val * (a / 10000) // sin returns from -10^4 to 10^4
                     end if                    
 
-                    Playing_changeTune(i, val, 0)
+                    Globals.vibratoTune := val
+
+                    Playing_changeTune(i, val, 0, TuneTypes.vibrato)
                     Playing[i].timeOp.vibrato := Playing[i].timeOp.vibrato + timeOperationPeriods.vibrato
 
                 end if

@@ -284,7 +284,7 @@ function Playing_playNote(i)
         change_vol(Playing[i].sys, VOLUME_MIN, 0)
     end if
     // Zone_set(i)
-    Playing_changeTune(i, 0, 0)
+    Playing_changeTune(i, 0, 0, TuneTypes.none)
 end function
 
 function Playing_getMappingVelocity(i) -> result
@@ -554,10 +554,16 @@ function Playing_maxVoicesReached() -> result
     end if    
 end function
 
-function Playing_changeTune(i, val, rel)
+function Playing_changeTune(i, val, rel, tuneType)
     declare value := val
     if (rel = 0)
-        value := value + Globals.pitchBend
+        if (tuneType = TuneTypes.bend)
+            value := value + Globals.vibratoTune
+        else if (tuneType = TuneTypes.vibrato)
+            value := value + Globals.pitchBend
+        else 
+            value := value + Globals.pitchBend + Globals.vibratoTune
+        end if
     end if
 
     if (Globals.opString = 0 or Globals.opString = Playing[i].gn.string)

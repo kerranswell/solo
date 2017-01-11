@@ -46,7 +46,7 @@ function setActiveGroups
     declare tmp
     declare @gname
     @gname := formGroupName()
-    // debug2(@gname)
+    debug2(@gname)
     declare zg := zeroGroup()
     declare takeCount := Globals.takeCounts[playMode.artCode]
 

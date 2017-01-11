@@ -32,6 +32,12 @@ function Const_on_init
         su2
         sd2
     end const
+
+    const TuneTypes
+        bend
+        vibrato
+        none
+    end const
     
     family Globals
         declare takeCounts[ArtsCodes.SIZE]
@@ -47,6 +53,7 @@ function Const_on_init
 	    declare opStringAuto := 1 // auto choosing opString
 
         declare pitchBend := 0
+        declare vibratoTune := 0
         declare pitchBendRaw := 0
         declare tappingStarted := 0
         declare slideStarted := 0
