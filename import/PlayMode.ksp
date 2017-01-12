@@ -14,6 +14,7 @@ macro PlayMode_on_init
         declare offset
         declare duration
         declare pickNoise // pick noise sample
+        declare ghostNoise // slight touch of a string by left hand when moving from the string up to next
 
         declare artCode
     end struct
@@ -104,6 +105,7 @@ macro PlayMode_resetPlayMode(#p#)
     #p#.offset := 0
     #p#.duration := -1
     #p#.pickNoise := 0
+    #p#.ghostNoise := 0
 
     #p#.slideIn := 0
     #p#.slideOut := 0
@@ -124,6 +126,7 @@ macro PlayMode_copy(#p#, #p2#)
     #p#.offset := #p2#.offset
     #p#.duration := #p2#.duration
     #p#.pickNoise := #p2#.pickNoise
+    #p#.ghostNoise := #p2#.ghostNoise
 
     #p#.slideIn := #p2#.slideIn
     #p#.slideOut := #p2#.slideOut
@@ -152,6 +155,7 @@ function setPlayMode(velocity, string, note)
     playMode.slideUp2 := 0
     playMode.slideDown2 := 0
     playMode.pickNoise := 0
+    playMode.ghostNoise := 0
 
 {     if (playMode.letRing = 1)
         playMode.duration := 0

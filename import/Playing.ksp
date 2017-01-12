@@ -604,3 +604,17 @@ function Playing_isPlaying(string, fret) -> result
         end if
     end for
 end function
+
+function Playing_ghostNoise()
+    declare time := Funcs.Time_getCurrentTime() - Globals.lastNoteEndTime
+    if ((time >= 0 and time < 20 and Globals.lastNoteEndTime >= 0) and (lastNote.string > nextNote.string))
+        declare note
+        note := Board_string2note(lastNote.string, 0)
+        i := Playing_push(-1, note, lastNote.string, 0, 1, 100)
+        Playing[i].playMode.ghostNoise := 1
+        Playing[i].playMode.duration := 0
+        Playing_playNote(i)
+        change_vol(Playing[i].sys, VOLUME_DEFAULT, 0)
+    end if
+end function
+

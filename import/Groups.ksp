@@ -128,4 +128,8 @@ function formGroupName() -> result
         result := rh_muted[playMode.rh_Muted] & pickDown[playMode.pickDown]
     end if
 
+    if (playMode.ghostNoise > 0)
+        result := "gn"
+    end if
+
 end function

@@ -58,6 +58,8 @@ function Const_on_init
         declare tappingStarted := 0
         declare slideStarted := 0
         declare posDefault := 0
+
+        declare lastNoteEndTime := -1
     end family
 
     declare i
