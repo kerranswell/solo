@@ -9,7 +9,7 @@ function debug_Playing
     // debug_clear()
     for i := 0 to Globals.maxVoices-1
         if (Playing[i].sys # -1)
-            debug("([" & i & "] s" & Playing[i].gn.string &"f"& Playing[i].gn.fret &"), " & "sys(" & Playing[i].sys & ", zl("& Playing[i].zone.length &"), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &"), so("& Playing[i].playMode.slideOut &"), su("& Playing[i].playMode.slideUp &","&Playing[i].playMode.slideUp2&"), sd("& Playing[i].playMode.slideDown &","&Playing[i].playMode.slideDown2&"), off("&Playing[i].playmode.offset&"), pn(" & Playing[i].playmode.pickNoise & ")")
+            debug("([" & i & "] s" & Playing[i].gn.string &"f"& Playing[i].gn.fret &"), " & "sys(" & Playing[i].sys & ", zl("& Playing[i].zone.length &"), " & "active(" & Playing[i].active & "), " & "parent(" & Playing[i].parent & "), LR(" & Playing[i].playMode.letRing & "), V(" & Playing[i].playMode.lh_Vibrato & "), si("& Playing[i].playMode.slideIn &"), so("& Playing[i].playMode.slideOut &"), su("& Playing[i].playMode.slideUp &","&Playing[i].playMode.slideUp2&"), sd("& Playing[i].playMode.slideDown &","&Playing[i].playMode.slideDown2&"), off("&Playing[i].playmode.offset&"), pn(" & Playing[i].playmode.pickNoise & "), gnoise(" & Playing[i].playmode.ghostNoise & ")")
             debug("")            
         end if
     end for

@@ -606,15 +606,34 @@ function Playing_isPlaying(string, fret) -> result
 end function
 
 function Playing_ghostNoise()
-    declare time := Funcs.Time_getCurrentTime() - Globals.lastNoteEndTime
-    if ((time >= 0 and time < 20 and Globals.lastNoteEndTime >= 0) and (lastNote.string > nextNote.string))
-        declare note
-        note := Board_string2note(lastNote.string, 0)
-        i := Playing_push(-1, note, lastNote.string, 0, 1, 100)
-        Playing[i].playMode.ghostNoise := 1
-        Playing[i].playMode.duration := 0
-        Playing_playNote(i)
-        change_vol(Playing[i].sys, VOLUME_DEFAULT, 0)
+    if (UI.ghostNoise > 0)
+
+        declare ic
+        declare time := Funcs.Time_getCurrentTime() - Globals.lastNoteEndTime
+        declare lastNoteLength := Funcs.Time_getCurrentTime() - lastNote.startTime
+        
+        if ((time >= 0 and time < 20 and Globals.lastNoteEndTime >= 0 and lastNoteLength <= 200) and (lastNote.string > nextNote.string))
+
+            // stop prev noise note on this string
+            declare j
+            for j := 0 to Globals.maxVoices-1
+                if (Playing[j].sys # -1 and Playing[j].playMode.ghostNoise = 1 and Playing[j].gn.string = lastNote.string)
+                    Playing_stopNote(j)
+                    debug2("remove " & j)
+                end if
+            end for
+
+            declare note
+            note := Board_string2note(lastNote.string, 0)
+            ic := Playing_push(-1, note, lastNote.string, 0, 1, 100)
+            Playing[ic].playMode.ghostNoise := 1
+            Playing[ic].playMode.duration := 0
+            Playing_playNote(ic)
+            declare vol
+            vol := Funcs.linearEq(UI.ghostNoise, 100, 0, 1, 66, 1000)
+            debug2("Ghost Noise Vol " & vol)
+            change_vol(Playing[ic].sys, VOLUME_DEFAULT - vol, 0)
+        end if
     end if
 end function
 
