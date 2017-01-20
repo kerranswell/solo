@@ -5,7 +5,6 @@ macro UI_on_init
     family UI
         // declare read ui_switch softMute
         declare ui_switch rh_Muted
-        declare ui_switch lh_Vibrato
         declare ui_switch altStroke
         declare ui_switch letRing
         declare ui_switch tapSamples
@@ -17,6 +16,7 @@ macro UI_on_init
         // declare ui_knob vibratoSpeed (-50, 50, 1)
         declare read ui_knob vibratoSpeed (0, 100, 1)
         declare ui_knob vibratoDepth (0, 100, 1)
+        declare ui_switch vibratoNatural
         declare ui_label label (2,6)
         declare ui_label label2 (2,6)
         declare ui_knob pos(0,Const.fretCount-3-1, 1)
@@ -45,7 +45,7 @@ macro UI_on_init
 	add_menu_item(UI.duration, "Demisemiquaver", Intervals.Demisemiquaver)
 	UI.duration -> value := playModeGlobal.altStrokeInterval
 
-   set_text(UI.try, "Group Try")
+    set_text(UI.try, "Group Try")
 
     set_text(UI.label,"") 
     set_text(UI.label2,"") 
@@ -56,14 +56,14 @@ macro UI_on_init
     UI.rh_Muted := playModeGlobal.pm.rh_Muted
     set_text(UI.rh_Muted, "P.M.")
 
-    UI.lh_Vibrato := playModeGlobal.pm.lh_Vibrato
-    set_text(UI.lh_Vibrato, "Vibrato")
-
     UI.altStroke := playModeGlobal.altStroke
     set_text(UI.altStroke, "Alt Stroke")
 
     UI.tapping := playModeGlobal.tapping
     set_text(UI.tapping, "Tapping")
+
+    UI.vibratoNatural := playModeGlobal.vibratoNatural
+    set_text(UI.vibratoNatural, "Vib. Natural")
 
     UI.slide := playModeGlobal.slide
     set_text(UI.slide, "Slide")

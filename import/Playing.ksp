@@ -209,6 +209,14 @@ function Playing_startChildren(i)
         createChild(lh_Vibrato, 0, 0)
     end if
 }
+    if (PlayModeGlobal.vibratoNatural = 1 and PlayModeGlobal.vibratoDepth > 0)
+        createChild(i, 1)
+    else 
+        createChild(i, 0)
+    end if
+
+    Playing[j].playMode.lh_Vibrato := 1
+
     declare group_index
     declare ev
 
@@ -409,19 +417,18 @@ function Playing_resetItemWithChilds(i)
     Playing_resetItem(i)
 end function
 
-function Playing_vibratoTrigger(ton)
+function Playing_vibratoTrigger(new_value)
 
-    macro trigger(#p#, #new_value#, #parent_condition#)
         declare i // note to be morphed to vibrato
         declare j // child note to be created and morphed to
         for i := 0 to Globals.maxVoices-1
-            if (Playing[i].sys # -1 and Playing[i].parent = -1 and Playing[i].#p# # #new_value# #parent_condition#)
+            if (Playing[i].sys # -1 and Playing[i].parent = -1 and Playing[i].playmode.lh_Vibrato # new_value and Playing[i].playmode.rh_Muted = 0)
                 for j := 0 to Globals.maxVoices-1
-                    if (Playing[j].sys # -1 and Playing[j].parent = i and Playing[j].#p# = #new_value#)
+                    if (Playing[j].sys # -1 and Playing[j].parent = i and Playing[j].playmode.lh_Vibrato = new_value)
 
                         // crossfade to sounds
                         change_vol(Playing[i].sys, VOLUME_MIN, 0)
-                        change_vol(Playing[j].sys, VOLUME_MAX, 0)
+                        change_vol(Playing[j].sys, VOLUME_DEFAULT, 0)
 
                         Playing[i].active := 0
                         Playing[j].active := 1
@@ -430,12 +437,6 @@ function Playing_vibratoTrigger(ton)
                 end for
             end if
         end for        
-    end macro
-
-    trigger(playMode.lh_Vibrato, ton, and Playing[i].playMode.rh_Muted = 0)
-
-    // debug("after controller")
-    // debug_Playing()
 
 end function
 

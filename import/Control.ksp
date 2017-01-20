@@ -4,8 +4,8 @@ on ui_control (UI.rh_Muted)
 
 end on
 
-on ui_control (UI.lh_Vibrato)
-    extControl(ExtEventType.lh_Vibrato, UI.lh_Vibrato)
+on ui_control (UI.vibratoNatural)
+    extControl(ExtEventType.vibratoNatural, UI.vibratoNatural)
 end on
 
 on ui_control (UI.altStroke)
@@ -100,13 +100,13 @@ function extControl(etype, value)
         case ExtEventType.duration
             playModeGlobal.altStrokeInterval := value
 
-        case ExtEventType.lh_Vibrato
-            if (playModeGlobal.pm.lh_Vibrato = 1)
-                playModeGlobal.pm.lh_Vibrato := 0
+        case ExtEventType.vibratoNatural
+            if (playModeGlobal.vibratoNatural = 1)
+                playModeGlobal.vibratoNatural := 0
             else 
-                playModeGlobal.pm.lh_Vibrato := 1
+                playModeGlobal.vibratoNatural := 1
             end if
-            Playing_vibratoTrigger(playModeGlobal.pm.lh_Vibrato)
+            // Playing_vibratoTrigger(playModeGlobal.vibratoNatural)
             // playModeGlobal.pm.lh_Vibrato := value
 
         case ExtEventType.vibratoSpeed
@@ -185,8 +185,8 @@ function uiFeedback(etype, value)
         UI.altStroke := value
     else if (etype = ExtEventType.tapping and UI.tapping # value)
         UI.tapping := value
-    else if (etype = ExtEventType.lh_Vibrato and UI.lh_Vibrato # value)
-        UI.lh_Vibrato := value
+    else if (etype = ExtEventType.vibratoNatural and UI.vibratoNatural # value)
+        UI.vibratoNatural := value
     else if (etype = ExtEventType.vibratoSpeed)
         UI.vibratoSpeed := value
     else if (etype = ExtEventType.vibratoDepth)

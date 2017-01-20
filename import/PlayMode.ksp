@@ -43,6 +43,7 @@ macro PlayMode_on_init
 
         declare lastNoteStart := -1
         declare tapping := 0
+        declare vibratoNatural := 0
         declare slide := 0
         declare dir := 1
     end struct
