@@ -106,7 +106,7 @@ function Playing_timeOperationsStart(i)
         fade_in(Playing[i].sys, timeOperationTotals.fadeIn * 1000)
     end if
 
-    if (playModeGlobal.vibratoDepth > 0)
+    if (playModeGlobal.vibratoDepth > 0 and Playing[i].playMode.lh_Vibrato = 0)
         Playing_startVibratoCycle(i)
     end if
 
@@ -201,21 +201,17 @@ end function
 
 function Playing_startChildren(i)
     declare j
-{   if (Playing[i].playMode.lh_Vibrato = 0)
-        createChild(lh_Vibrato, 1, 0)
-    end if
 
-    if (Playing[i].playMode.lh_Vibrato = 1)
-        createChild(lh_Vibrato, 0, 0)
-    end if
-}
-    if (PlayModeGlobal.vibratoNatural = 1 and PlayModeGlobal.vibratoDepth > 0)
-        createChild(i, 1)
-    else 
-        createChild(i, 0)
-    end if
+    if (Playing[i].playMode.rh_Muted = 0 and PlayModeGlobal.vibratoNatural = 1) 
+        if (PlayModeGlobal.vibratoDepth > 0)
+            createChild(i, 1)
+        else 
+            createChild(i, 0)
+        end if
 
-    Playing[j].playMode.lh_Vibrato := 1
+        Playing[j].playMode.lh_Vibrato := 1
+        Playing_playNote(j)
+    end if 
 
     declare group_index
     declare ev
@@ -271,6 +267,7 @@ function Playing_startChildren(i)
         createChild(i, 1)
         if (j # -1)
             Playing[j].playMode.pickNoise := 1
+            // Playing[j].playMode.duration := 50000
             Playing_playNote(j)
         end if
     end if
@@ -422,16 +419,22 @@ function Playing_vibratoTrigger(new_value)
         declare i // note to be morphed to vibrato
         declare j // child note to be created and morphed to
         for i := 0 to Globals.maxVoices-1
-            if (Playing[i].sys # -1 and Playing[i].parent = -1 and Playing[i].playmode.lh_Vibrato # new_value and Playing[i].playmode.rh_Muted = 0)
+            if (Playing[i].sys # -1 and Playing[i].parent = -1 and Playing[i].playmode.rh_Muted = 0)
                 for j := 0 to Globals.maxVoices-1
-                    if (Playing[j].sys # -1 and Playing[j].parent = i and Playing[j].playmode.lh_Vibrato = new_value)
+                    if (Playing[j].sys # -1 and Playing[j].parent = i and Playing[j].playmode.lh_Vibrato = 1)
 
-                        // crossfade to sounds
-                        change_vol(Playing[i].sys, VOLUME_MIN, 0)
-                        change_vol(Playing[j].sys, VOLUME_DEFAULT, 0)
-
-                        Playing[i].active := 0
-                        Playing[j].active := 1
+                        // crossfade
+                        if (new_value = 1)
+                            change_vol(Playing[i].sys, VOLUME_MIN, 0)
+                            change_vol(Playing[j].sys, VOLUME_DEFAULT, 0)                            
+                            Playing[i].active := 0
+                            Playing[j].active := 1
+                        else 
+                            change_vol(Playing[i].sys, VOLUME_DEFAULT, 0)
+                            change_vol(Playing[j].sys, VOLUME_MIN, 0)
+                            Playing[i].active := 1
+                            Playing[j].active := 0
+                        end if
 
                     end if
                 end for
@@ -638,3 +641,19 @@ function Playing_ghostNoise()
     end if
 end function
 
+
+function Playing_chooseActive(i) -> result
+    declare j
+
+    result := i
+
+    for j := 0 to Globals.maxVoices-1
+        if (Playing[j].parent = i)
+            if (Playing[j].playMode.lh_Vibrato = 1 and playModeGlobal.vibratoNatural = 1 and playModeGlobal.vibratoDepth > 0)
+                result := j
+                break(j, Globals.maxVoices)
+            end if
+        end if
+    end for
+
+end function

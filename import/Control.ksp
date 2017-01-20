@@ -114,13 +114,22 @@ function extControl(etype, value)
 
         case ExtEventType.vibratoDepth
             if (playModeGlobal.vibratoDepth = 0 and value > 0)
+
+                if (playModeGlobal.vibratoNatural = 1)
+                    Playing_vibratoTrigger(1)
+                end if
+
                 // starting vibrato cycle
                 for i := 0 to Globals.maxVoices-1
-                    if (Playing[i].sys # -1)
+                    if (Playing[i].sys # -1 and Playing[i].playmode.lh_Vibrato = 0)
                         Playing_startVibratoCycle(i)
                     end if
                 end for
             else if (playModeGlobal.vibratoDepth > 0 and value = 0)
+                if (playModeGlobal.vibratoNatural = 1)
+                    Playing_vibratoTrigger(0)
+                end if
+
                 // ending vibrato cycle
                 for i := 0 to Globals.maxVoices-1
                     if (Playing[i].sys # -1 and Playing[i].timeOp.vibrato # -1)
@@ -226,7 +235,7 @@ function onController
             else 
                 Playing_vibratoTrigger(0)
             end if
-            uiFeedback(ExtEventType.lh_Vibrato, playModeGlobal.pm.lh_Vibrato)   
+            uiFeedback(ExtEventType.vibratoNatural, playModeGlobal.pm.lh_Vibrato)   
 
         { Stop Strings }
         case 22

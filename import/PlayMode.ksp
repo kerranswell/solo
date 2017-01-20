@@ -276,17 +276,6 @@ macro PlayMode_change(#pm#, #type#, val)
 
             #pm#.rh_Muted := val
 
-
-        // vibrato
-        case ExtEventType.lh_Vibrato
-            
-            if (val = 1)
-                #pm#.rh_Muted := 0
-            end if
-
-            #pm#.lh_Vibrato := val
-
-
         // let ring
         case ExtEventType.letRing
 
