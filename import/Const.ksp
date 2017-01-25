@@ -58,6 +58,7 @@ function Const_on_init
         declare tappingStarted := 0
         declare slideStarted := 0
         declare posDefault := 0
+        declare pitchBendNatural // says for itself
 
         declare lastNoteEndTime := -1
     end family
@@ -105,4 +106,15 @@ end function
 
 function getSlideInLength(speed, length) -> result
     result := Funcs.linearEq(speed, 64, length, 127, length / 2, 100) / 100
+end function
+
+function getGhostNoiseVolume(val) -> result
+    result := VOLUME_DEFAULT - Funcs.linearEq(val, 100, 0, 1, 10, 1000)
+end function
+
+function getEnginePBSpeed(x) -> result
+    result := epSpeed(V2E, Funcs.linearEq(x, 1, 50, 127, 350, 100) / 10) 
+end function
+function getPBDelimiter(x) -> result
+    result := Funcs.linearEq(x, 22, 750, 100, 250, 100) / 100
 end function

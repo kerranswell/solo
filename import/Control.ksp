@@ -8,6 +8,10 @@ on ui_control (UI.vibratoNatural)
     extControl(ExtEventType.vibratoNatural, UI.vibratoNatural)
 end on
 
+on ui_control (UI.ghostNoise)
+    extControl(ExtEventType.ghostNoise, UI.ghostNoise)
+end on
+
 on ui_control (UI.altStroke)
     extControl(ExtEventType.altStroke, UI.altStroke)
 end on
@@ -111,6 +115,9 @@ function extControl(etype, value)
 
         case ExtEventType.vibratoSpeed
             playModeGlobal.vibratoSpeed := value
+
+        case ExtEventType.ghostNoise
+            Playing_changeGhostNoiseVolume(value)
 
         case ExtEventType.vibratoDepth
             if (playModeGlobal.vibratoDepth = 0 and value > 0)
@@ -309,6 +316,18 @@ function onController
             Globals.posDefault := %CC[$CC_NUM]
             extControl(ExtEventType.pos, %CC[$CC_NUM])
 
+        { Pitch Bend Natural }
+        case 30
+            declare v
+            v := %CC[$CC_NUM]
+            if (v >= 11 and v <= 14) 
+                v := 10 - v
+            else if (v < 1 or v > 4)
+                v := 0
+            end if
+            Globals.pitchBendNatural := v
+            extControl(ExtEventType.pitchBendNatural, v)
+
         { pitch bend }
         case 128
             extControl(ExtEventType.pitchBend, %CC[$CC_NUM])
@@ -447,6 +466,17 @@ function timeOperations()
                     Playing_changeTune(i, val, 0, TuneTypes.vibrato)
                     Playing[i].timeOp.vibrato := Playing[i].timeOp.vibrato + timeOperationPeriods.vibrato
 
+                end if
+            end if
+
+            if (Playing[i].playMode.pitchBendNatural # 0 and Playing[i].timeOp.pitchBendReturned = 0)
+                declare d
+                d := getPBDelimiter(Playing[i].event_velocity)
+                if (now - Playing[i].startTime >= d)
+                    declare ev
+                    ev := epSpeed(V2E, 1000)
+                    set_engine_par($ENGINE_PAR_SPEED, ev, Playing[i].groupIndex, -1, -1)
+                    Playing[i].timeOp.pitchBendReturned := 1
                 end if
             end if
 

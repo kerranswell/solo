@@ -15,6 +15,7 @@ macro PlayMode_on_init
         declare duration
         declare pickNoise // pick noise sample
         declare ghostNoise // slight touch of a string by left hand when moving from the string up to next
+        declare pitchBendNatural // says for itself
 
         declare artCode
     end struct
@@ -45,7 +46,7 @@ macro PlayMode_on_init
         declare tapping := 0
         declare vibratoNatural := 0
         declare slide := 0
-        declare dir := 1
+        declare dir := 1        
     end struct
 
     declare &_PlayMode playMode // this is used for setting note play mode props at the moment new note starts,
@@ -107,6 +108,7 @@ macro PlayMode_resetPlayMode(#p#)
     #p#.duration := -1
     #p#.pickNoise := 0
     #p#.ghostNoise := 0
+    #p#.pitchBendNatural := 0
 
     #p#.slideIn := 0
     #p#.slideOut := 0
@@ -128,6 +130,7 @@ macro PlayMode_copy(#p#, #p2#)
     #p#.duration := #p2#.duration
     #p#.pickNoise := #p2#.pickNoise
     #p#.ghostNoise := #p2#.ghostNoise
+    #p#.pitchBendNatural := #p2#.pitchBendNatural
 
     #p#.slideIn := #p2#.slideIn
     #p#.slideOut := #p2#.slideOut
@@ -145,23 +148,9 @@ function setPlayMode(velocity, string, note)
 
     PlayMode_resetPlayMode(playMode)
 
-    playMode.lh_Vibrato := 0
-
     playMode.letRing := playModeGlobal.pm.letRing
     playMode.pickDown := playModeGlobal.pm.pickDown
-    playMode.slideIn := 0
-    playMode.slideOut := 0
-    playMode.slideUp := 0
-    playMode.slideDown := 0
-    playMode.slideUp2 := 0
-    playMode.slideDown2 := 0
-    playMode.pickNoise := 0
-    playMode.ghostNoise := 0
 
-{     if (playMode.letRing = 1)
-        playMode.duration := 0
-    end if
- }
     playMode.artCode := ArtsCodes.o_pd
 
     if (in_range(velocity, velocityArtZones.rh_Muted_Down[0], velocityArtZones.rh_Muted_Down[1]))
@@ -233,9 +222,27 @@ function setPlayMode(velocity, string, note)
         playMode.artCode := ArtsCodes.m2_pu
     end if
  }
+
+    declare slide_bool
+    mPlayMode_isSlide(playMode, slide_bool)
+    if (Globals.pitchBendNatural # 0 and slide_bool = 0)
+        playMode.rh_Muted := 0 
+        playMode.pickNoise := 0
+        playMode.lh_Vibrato := 0 // maybe we will cross it later
+        playMode.pitchBendNatural := Globals.pitchBendNatural
+    end if
+
     // uiFeedbackPlayMode()
 
 end function
+
+macro mPlayMode_isSlide(#p#, #result#)
+    if (#p#.slideIn = 0 and #p#.slideOut = 0 and #p#.slideDown = 0 and #p#.slideDown2 = 0 and #p#.slideUp = 0 and #p#.slideUp2 = 0)
+        #result# := 0
+    else 
+        #result# := 1
+    end if
+end macro
 
 {function PlayMode_getVelocityByPlayMode(i) -> result
 

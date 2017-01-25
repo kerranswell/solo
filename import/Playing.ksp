@@ -6,6 +6,7 @@ macro Playing_on_init
         declare fadeIn
         declare vibrato
         declare pitchTable
+        declare pitchBendReturned := 0
     end struct
 
     struct _Zone
@@ -37,6 +38,8 @@ macro Playing_on_init
         declare &_Zone zone
 
         declare &_PlayingTimeOperation timeOp
+
+        declare groupIndex
     end struct
 
     declare &_Playing Playing[Globals.maxVoices]
@@ -202,7 +205,7 @@ end function
 function Playing_startChildren(i)
     declare j
 
-    if (Playing[i].playMode.rh_Muted = 0 and PlayModeGlobal.vibratoNatural = 1) 
+    if (Playing[i].playMode.rh_Muted = 0 and PlayModeGlobal.vibratoNatural = 1 and Playing[i].playMode.pitchBendNatural = 0) 
         if (PlayModeGlobal.vibratoDepth > 0)
             createChild(i, 1)
         else 
@@ -258,7 +261,7 @@ function Playing_startChildren(i)
                 Playing[j].playmode.duration := getDurationForSlideDown(playModeGlobal.slide, Playing[j].playMode.duration)
             end if
             Playing_playNote(j)
-            set_engine_par($ENGINE_PAR_SPEED, ev, Globals.lastGroupIndex, -1, -1)            
+            set_engine_par($ENGINE_PAR_SPEED, ev, Playing[j].groupIndex, -1, -1)
 
         end if
     end if
@@ -266,6 +269,7 @@ function Playing_startChildren(i)
     if (Playing[i].playmode.legato = 0 and playModeGlobal.tapping = 0 and playModeGlobal.slide = 0)
         createChild(i, 1)
         if (j # -1)
+            PlayMode_resetPlayMode(Playing[j].playMode)
             Playing[j].playMode.pickNoise := 1
             // Playing[j].playMode.duration := 50000
             Playing_playNote(j)
@@ -274,6 +278,14 @@ function Playing_startChildren(i)
 
     // debug_Playing()
 
+end function
+
+function Playing_PitchBendCheck(i)
+    if (Playing[i].playMode.pitchBendNatural # 0)
+        declare ev
+        ev := getEnginePBSpeed(Playing[i].event_velocity)
+        set_engine_par($ENGINE_PAR_SPEED, ev, Playing[i].groupIndex, -1, -1)
+    end if
 end function
 
 function Playing_playNote(i)
@@ -290,6 +302,8 @@ function Playing_playNote(i)
     end if
     // Zone_set(i)
     Playing_changeTune(i, 0, 0, TuneTypes.none)
+
+    Playing[i].groupIndex := Globals.lastGroupIndex
 end function
 
 function Playing_getMappingVelocity(i) -> result
@@ -399,6 +413,7 @@ function Playing_resetItem(i)
     Playing[i].timeOp.fadeIn := -1
     Playing[i].timeOp.vibrato := -1
     Playing[i].timeOp.pitchTable := -1
+    Playing[i].timeOp.pitchBendReturned := 0
 end function
 
 function Playing_resetItemWithChilds(i)
@@ -609,6 +624,17 @@ function Playing_isPlaying(string, fret) -> result
     end for
 end function
 
+function Playing_changeGhostNoiseVolume(value)
+    declare vol            
+    declare i
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].sys # -1 and Playing[i].playMode.ghostNoise = 1)
+            vol := getGhostNoiseVolume(value)
+            change_vol(Playing[i].sys, vol, 0)
+        end if
+    end for
+end function
+
 function Playing_ghostNoise()
     if (UI.ghostNoise > 0)
 
@@ -623,7 +649,7 @@ function Playing_ghostNoise()
             for j := 0 to Globals.maxVoices-1
                 if (Playing[j].sys # -1 and Playing[j].playMode.ghostNoise = 1 and Playing[j].gn.string = lastNote.string)
                     Playing_stopNote(j)
-                    debug2("remove " & j)
+                    // debug2("remove " & j)
                 end if
             end for
 
@@ -633,10 +659,10 @@ function Playing_ghostNoise()
             Playing[ic].playMode.ghostNoise := 1
             Playing[ic].playMode.duration := 0
             Playing_playNote(ic)
-            declare vol
-            vol := Funcs.linearEq(UI.ghostNoise, 100, 0, 1, 66, 1000)
-            debug2("Ghost Noise Vol " & vol)
-            change_vol(Playing[ic].sys, VOLUME_DEFAULT - vol, 0)
+            declare vol            
+            vol := getGhostNoiseVolume(UI.ghostNoise)
+            // debug2("Ghost Noise Vol " & vol)
+            change_vol(Playing[ic].sys, vol, 0)
         end if
     end if
 end function

@@ -132,4 +132,10 @@ function formGroupName() -> result
         result := "gn"
     end if
 
+    if (playMode.pitchBendNatural > 0)
+        result := "bup" & playMode.pitchBendNatural
+    else if (playMode.pitchBendNatural < 0)
+        result := "bdn" & abs(playMode.pitchBendNatural)
+    end if
+
 end function
