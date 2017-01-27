@@ -43,6 +43,7 @@ function Const_on_init
         declare takeCounts[ArtsCodes.SIZE]
         declare const maxVoices := 20
         declare const maxGroups := 5
+        declare const maxEvents := 10
         declare lastGroupIndex := -1
         declare lastTakeIndex := -1
 
@@ -109,7 +110,19 @@ function getSlideInLength(speed, length) -> result
 end function
 
 function getGhostNoiseVolume(val) -> result
-    result := VOLUME_DEFAULT - Funcs.linearEq(val, 100, 0, 1, 10, 1000)
+    if (val = 0) 
+        result := VOLUME_MIN
+    else 
+        result := VOLUME_DEFAULT - Funcs.linearEq(val, 100, 0, 1, 10, 1000)
+    end if
+end function
+
+function getLHNoiseVolume(val) -> result
+    if (val = 0) 
+        result := VOLUME_MIN
+    else 
+        result := VOLUME_DEFAULT - Funcs.linearEq(val, 100, 0, 1, 30, 1000)
+    end if
 end function
 
 function getEnginePBSpeed(x) -> result

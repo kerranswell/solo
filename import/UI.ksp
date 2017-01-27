@@ -13,6 +13,7 @@ macro UI_on_init
         declare ui_button debugClear
         declare ui_knob pickNoise (0, 100, 1)
         declare ui_knob ghostNoise (0, 100, 1)
+        declare ui_knob lhNoise (0, 100, 1)
         // declare ui_knob vibratoSpeed (-50, 50, 1)
         declare read ui_knob vibratoSpeed (0, 100, 1)
         declare ui_knob vibratoDepth (0, 100, 1)
@@ -76,6 +77,9 @@ macro UI_on_init
 
     UI.pickNoise := 100
     set_text(UI.pickNoise, "Pick Noise")
+    
+    UI.lhNoise := 100
+    set_text(UI.lhNoise, "L.H. Noise")
     
     UI.ghostNoise := 100
     set_text(UI.ghostNoise, "Ghost Noise")

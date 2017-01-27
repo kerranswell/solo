@@ -16,6 +16,7 @@ macro PlayMode_on_init
         declare pickNoise // pick noise sample
         declare ghostNoise // slight touch of a string by left hand when moving from the string up to next
         declare pitchBendNatural // says for itself
+        declare afterNoteNoise // noise after note is played when finger removes from the board
 
         declare artCode
     end struct
@@ -109,6 +110,7 @@ macro PlayMode_resetPlayMode(#p#)
     #p#.pickNoise := 0
     #p#.ghostNoise := 0
     #p#.pitchBendNatural := 0
+    #p#.afterNoteNoise := 0
 
     #p#.slideIn := 0
     #p#.slideOut := 0
@@ -131,6 +133,7 @@ macro PlayMode_copy(#p#, #p2#)
     #p#.pickNoise := #p2#.pickNoise
     #p#.ghostNoise := #p2#.ghostNoise
     #p#.pitchBendNatural := #p2#.pitchBendNatural
+    #p#.afterNoteNoise := #p2#.afterNoteNoise
 
     #p#.slideIn := #p2#.slideIn
     #p#.slideOut := #p2#.slideOut

@@ -138,4 +138,8 @@ function formGroupName() -> result
         result := "bdn" & abs(playMode.pitchBendNatural)
     end if
 
+    if (playMode.afterNoteNoise = 1)
+        result := "stn"
+    end if
+
 end function

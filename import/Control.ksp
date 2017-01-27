@@ -12,6 +12,10 @@ on ui_control (UI.ghostNoise)
     extControl(ExtEventType.ghostNoise, UI.ghostNoise)
 end on
 
+on ui_control (UI.lhNoise)
+    extControl(ExtEventType.lhNoise, UI.lhNoise)
+end on
+
 on ui_control (UI.altStroke)
     extControl(ExtEventType.altStroke, UI.altStroke)
 end on
@@ -118,6 +122,9 @@ function extControl(etype, value)
 
         case ExtEventType.ghostNoise
             Playing_changeGhostNoiseVolume(value)
+
+        case ExtEventType.lhNoise
+            Playing_changeLHNoiseVolume(value)
 
         case ExtEventType.vibratoDepth
             if (playModeGlobal.vibratoDepth = 0 and value > 0)
@@ -381,6 +388,32 @@ function timeOperations()
 
     // debug_Playing()
 
+    // Events
+
+    for i := 0 to Globals.maxEvents-1
+
+        if (Event[i].type # -1 and now - Event[i].createTime > Event[i].fireDelay)
+
+            select (Event[i].type)
+
+                case EventType.afterNoteNoise
+                    declare j
+                    j := Event[i].value
+
+                    if (Playing[j].sys # -1 and Playing[j].playmode.afterNoteNoise = 1)
+                        declare vol            
+                        vol := getGhostNoiseVolume(UI.ghostNoise)
+                        change_vol(Playing[j].sys, vol, 0)
+                    end if
+
+            end select
+
+            Event_resetItem(i)
+        end if
+
+    end for
+
+
     for i := 0 to Globals.maxVoices-1
 
         if (Playing[i].sys # -1)
@@ -471,7 +504,7 @@ function timeOperations()
 
             if (Playing[i].playMode.pitchBendNatural # 0 and Playing[i].timeOp.pitchBendReturned = 0)
                 declare d
-                d := getPBDelimiter(Playing[i].event_velocity)
+                d := getPBDelimiter(Playing[i].eventVelocity)
                 if (now - Playing[i].startTime >= d)
                     declare ev
                     ev := epSpeed(V2E, 1000)

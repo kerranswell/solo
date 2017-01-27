@@ -30,7 +30,7 @@ macro Playing_on_init
         { Time operations }
         declare startTime
 
-        declare event_velocity
+        declare eventVelocity
 
         // ghost note (eg. slide out sound)
         declare ghost := 0
@@ -149,12 +149,10 @@ function Playing_getIndexBySys(sys) -> result
     end for
 end function
 
-function Playing_push(sys, _note, string, fret, active, event_velocity) -> result
+function Playing_push(sys, _note, string, fret, active, eventVelocity) -> result
     declare i := 0
 
-    while (i < Globals.maxVoices and Playing[i].sys # -1)
-        inc(i)
-    end while
+    Array_Push(Playing, Globals.maxVoices, i, Playing[i].sys # -1)
 
     if (i < Globals.maxVoices)
         Playing[i].sys := sys
@@ -162,7 +160,7 @@ function Playing_push(sys, _note, string, fret, active, event_velocity) -> resul
         Playing[i].gn.string := string
         Playing[i].gn.fret := fret
 
-        Playing[i].event_velocity := event_velocity
+        Playing[i].eventVelocity := eventVelocity
 
         Playing[i].active := active
 
@@ -283,7 +281,7 @@ end function
 function Playing_PitchBendCheck(i)
     if (Playing[i].playMode.pitchBendNatural # 0)
         declare ev
-        ev := getEnginePBSpeed(Playing[i].event_velocity)
+        ev := getEnginePBSpeed(Playing[i].eventVelocity)
         set_engine_par($ENGINE_PAR_SPEED, ev, Playing[i].groupIndex, -1, -1)
     end if
 end function
@@ -370,7 +368,7 @@ function Playing_copySlot(i,j)
 
     copyProp(parent)
     copyProp(active)
-    copyProp(event_velocity)
+    copyProp(eventVelocity)
 
 end function
 
@@ -407,7 +405,7 @@ function Playing_resetItem(i)
     Playing[i].parent := -1
     Playing[i].active := 0
     Playing[i].ghost := 0
-    Playing[i].event_velocity := 0
+    Playing[i].eventVelocity := 0
 
     Playing[i].startTime := -1
     Playing[i].timeOp.fadeIn := -1
@@ -620,6 +618,17 @@ function Playing_isPlaying(string, fret) -> result
         if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.fret = fret and Playing[i].ghost = 0)
             result := 1
             break(i, Globals.maxVoices)
+        end if
+    end for
+end function
+
+function Playing_changeLHNoiseVolume(value)
+    declare vol            
+    declare i
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].sys # -1 and Playing[i].playMode.afterNoteNoise = 1)
+            vol := getLHNoiseVolume(value)
+            change_vol(Playing[i].sys, vol, 0)
         end if
     end for
 end function
