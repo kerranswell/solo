@@ -1,0 +1,47 @@
+macro Event_on_init
+
+    struct _Event
+        declare createTime // time of creating in ms
+        declare fireDelay // how many ms should run before event fires
+        declare type // type of event
+        declare value // value of the event
+    
+    end struct
+
+
+    const EventType
+        afterNoteNoise
+    end const
+
+    declare &_Event Event[Globals.maxEvents]
+    Event_resetAll()
+
+end macro
+
+function Event_resetAll
+	declare i
+    for i := 0 to Globals.maxEvents-1
+        Event_resetItem(i)            
+    end for
+end function
+
+function Event_resetItem(i)
+    Event[i].createTime := -1
+    Event[i].fireDelay := -1
+    Event[i].type := -1
+    Event[i].value := -1
+end function
+
+function Event_push(delay, type) -> result
+    declare i := 0
+
+    Array_Push(Event, Globals.maxEvents, i, Event[i].type # -1)
+
+    if (i < Globals.maxEvents)
+        Event[i].createTime := Funcs.Time_getCurrentTime()
+        Event[i].fireDelay := delay
+        Event[i].type := type
+    end if
+
+    result := i
+end function

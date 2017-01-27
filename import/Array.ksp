@@ -1,0 +1,9 @@
+macro Array_Push(#array#, #size#, #i#, #condition#)
+
+    #i# := 0
+
+    while (#i# < #size# and #condition#)
+        inc(#i#)
+    end while
+
+end macro
