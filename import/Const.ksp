@@ -131,3 +131,7 @@ end function
 function getPBDelimiter(x) -> result
     result := Funcs.linearEq(x, 22, 750, 100, 250, 100) / 100
 end function
+
+function getEngineLHVibratoSpeed(x) -> result
+    result := epSpeed(V2E, Funcs.linearEq(x, 0, 50, 127, 150, 100) / 10)
+end function

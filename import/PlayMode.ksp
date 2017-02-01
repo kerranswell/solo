@@ -37,7 +37,7 @@ macro PlayMode_on_init
 
     struct _PlayModeGlobal
         declare &_PlayMode pm
-        declare altStroke := 1
+        declare altStroke := 0
         declare altStrokeInterval := Intervals.Eighth
         declare pos := Globals.posDefault // left hand position
         declare vibratoSpeed := VIBRATO_SPEED_DEFAULT

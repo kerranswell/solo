@@ -203,7 +203,7 @@ end function
 function Playing_startChildren(i)
     declare j
 
-    if (Playing[i].playMode.rh_Muted = 0 and PlayModeGlobal.vibratoNatural = 1 and Playing[i].playMode.pitchBendNatural = 0) 
+{     if (Playing[i].playMode.rh_Muted = 0 and PlayModeGlobal.vibratoNatural = 1 and Playing[i].playMode.pitchBendNatural = 0) 
         if (PlayModeGlobal.vibratoDepth > 0)
             createChild(i, 1)
         else 
@@ -213,7 +213,7 @@ function Playing_startChildren(i)
         Playing[j].playMode.lh_Vibrato := 1
         Playing_playNote(j)
     end if 
-
+ }
     declare group_index
     declare ev
 
@@ -276,6 +276,14 @@ function Playing_startChildren(i)
 
     // debug_Playing()
 
+end function
+
+function Playing_lhVibratoCheck(i)
+    if (Playing[i].playMode.lh_Vibrato # 0)
+        declare ev
+        ev := getEngineLHVibratoSpeed(playModeGlobal.vibratoDepth)
+        set_engine_par($ENGINE_PAR_SPEED, ev, Playing[i].groupIndex, -1, -1)
+    end if
 end function
 
 function Playing_PitchBendCheck(i)

@@ -4,10 +4,10 @@ on ui_control (UI.rh_Muted)
 
 end on
 
-on ui_control (UI.vibratoNatural)
+{ on ui_control (UI.vibratoNatural)
     extControl(ExtEventType.vibratoNatural, UI.vibratoNatural)
 end on
-
+ }
 on ui_control (UI.ghostNoise)
     extControl(ExtEventType.ghostNoise, UI.ghostNoise)
 end on
@@ -68,7 +68,7 @@ end macro
 iterate_macro(mUI_Hit_callback) := 0 to MAX_SIMULTANEOUS_NOTES-1
  
 function extControl(etype, value)
-
+// TODO : check if previous value of a control equals the new one then do nothing. Optimizing.
     declare ev
     declare i
 
@@ -127,33 +127,45 @@ function extControl(etype, value)
             Playing_changeLHNoiseVolume(value)
 
         case ExtEventType.vibratoDepth
-            if (playModeGlobal.vibratoDepth = 0 and value > 0)
 
-                if (playModeGlobal.vibratoNatural = 1)
-                    Playing_vibratoTrigger(1)
-                end if
+            if (playModeGlobal.vibratoDepth # value)
 
-                // starting vibrato cycle
                 for i := 0 to Globals.maxVoices-1
-                    if (Playing[i].sys # -1 and Playing[i].playmode.lh_Vibrato = 0)
-                        Playing_startVibratoCycle(i)
+                    if (Playing[i].sys # -1 and Playing[i].playMode.lh_Vibrato = 1)
+                        declare ev
+                        ev := getEngineLHVibratoSpeed(value)
+                        set_engine_par($ENGINE_PAR_SPEED, ev, Playing[i].groupIndex, -1, -1)                    
                     end if
                 end for
-            else if (playModeGlobal.vibratoDepth > 0 and value = 0)
-                if (playModeGlobal.vibratoNatural = 1)
-                    Playing_vibratoTrigger(0)
+
+                if (playModeGlobal.vibratoDepth = 0 and value > 0)
+
+                    if (playModeGlobal.vibratoNatural = 1)
+                        Playing_vibratoTrigger(1)
+                    end if
+
+                    // starting vibrato cycle
+                    for i := 0 to Globals.maxVoices-1
+                        if (Playing[i].sys # -1 and Playing[i].playmode.lh_Vibrato = 0)
+                            Playing_startVibratoCycle(i)
+                        end if
+                    end for
+                else if (playModeGlobal.vibratoDepth > 0 and value = 0)
+                    if (playModeGlobal.vibratoNatural = 1)
+                        Playing_vibratoTrigger(0)
+                    end if
+
+                    // ending vibrato cycle
+                    for i := 0 to Globals.maxVoices-1
+                        if (Playing[i].sys # -1 and Playing[i].timeOp.vibrato # -1)
+                            Playing[i].timeOp.vibrato := -1
+                            Playing_changeTune(i, 0, 0, TuneTypes.vibrato)
+                        end if
+                    end for                
                 end if
 
-                // ending vibrato cycle
-                for i := 0 to Globals.maxVoices-1
-                    if (Playing[i].sys # -1 and Playing[i].timeOp.vibrato # -1)
-                        Playing[i].timeOp.vibrato := -1
-                        Playing_changeTune(i, 0, 0, TuneTypes.vibrato)
-                    end if
-                end for                
+                playModeGlobal.vibratoDepth := value
             end if
-
-            playModeGlobal.vibratoDepth := value
 
         case ExtEventType.triggerPT
             Globals.opString := value
@@ -208,9 +220,9 @@ function uiFeedback(etype, value)
         UI.altStroke := value
     else if (etype = ExtEventType.tapping and UI.tapping # value)
         UI.tapping := value
-    else if (etype = ExtEventType.vibratoNatural and UI.vibratoNatural # value)
+{     else if (etype = ExtEventType.vibratoNatural and UI.vibratoNatural # value)
         UI.vibratoNatural := value
-    else if (etype = ExtEventType.vibratoSpeed)
+ }    else if (etype = ExtEventType.vibratoSpeed)
         UI.vibratoSpeed := value
     else if (etype = ExtEventType.vibratoDepth)
         UI.vibratoDepth := value

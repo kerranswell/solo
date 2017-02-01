@@ -17,7 +17,7 @@ macro UI_on_init
         // declare ui_knob vibratoSpeed (-50, 50, 1)
         declare read ui_knob vibratoSpeed (0, 100, 1)
         declare ui_knob vibratoDepth (0, 100, 1)
-        declare ui_switch vibratoNatural
+        // declare ui_switch vibratoNatural
         declare ui_label label (2,6)
         declare ui_label label2 (2,6)
         declare ui_knob pos(0,Const.fretCount-3-1, 1)
@@ -63,9 +63,9 @@ macro UI_on_init
     UI.tapping := playModeGlobal.tapping
     set_text(UI.tapping, "Tapping")
 
-    UI.vibratoNatural := playModeGlobal.vibratoNatural
+{     UI.vibratoNatural := playModeGlobal.vibratoNatural
     set_text(UI.vibratoNatural, "Vib. Natural")
-
+ }
     UI.slide := playModeGlobal.slide
     set_text(UI.slide, "Slide")
 
