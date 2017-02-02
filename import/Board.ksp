@@ -61,7 +61,7 @@ function Board_setNoteTapping(next_note)
     declare new_string := string
     declare fret := lastNote.fret
     declare new_fret := fret
-
+// debug2("ls " & lastNote.string & "; lf " & lastNote.fret)
     declare dir := 1
     declare cur_note := Board_string2note(string, fret) // last note number
     if (cur_note > next_note) 
@@ -103,6 +103,7 @@ function Board_setNoteTapping(next_note)
     nextNote.string := new_string
     nextNote.fret := new_fret
     nextNote.startTime := Funcs.Time_getCurrentTime()
+    // debug2("ns " & nextNote.string & "; nf " & nextNote.fret)
 end function
 
 function Board_setNoteStandard(next_note)
@@ -236,9 +237,14 @@ function Board_setNoteStandard(next_note)
 
 // debug("s " & new_string & ", f " & new_fret)
 // debug("last("& playModeGlobal.lastNoteStart &"), time("& Funcs.Time_getCurrentTime() &") ")
-// debug("st " & Globals.slideStarted & ", slide " & playModeGlobal.slide & ", " )
-    if (Globals.slideStarted = 1 and playModeGlobal.slide > 0 and abs(Funcs.Time_getCurrentTime() - lastNote.startTime) > Const.simTakePeriod and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0))
-// debug("pos " & pos & ", dir " & dir & ", diff " & diff)
+    declare stringIsPlaying
+    stringIsPlaying := Playing_stringIsPlaying(string)
+    if (Globals.slideStarted = 1 and playModeGlobal.slide > 0 and abs(Funcs.Time_getCurrentTime() - lastNote.startTime) > Const.simTakePeriod and { ((dir * diff - cur_finger_pos > 4) or (dir * diff + cur_finger_pos < -1)) and } (pos + dir * diff <= Const.fretCount) and (pos + dir * diff >= 0) and stringIsPlaying = 1)
+// debug2("st " & Globals.slideStarted & ", slide " & playModeGlobal.slide & ", " )
+// debug2("s " & new_string & ", f " & new_fret)
+// debug2("pos " & pos & ", dir " & dir & ", diff " & diff)
+// debug2("string " & string & " is playing:  " & stringIsPlaying)
+// debug_Playing();
 
         pos := pos + dir * diff
         new_string := string
@@ -288,15 +294,13 @@ function Board_setNoteStandard(next_note)
     nextNote.string := new_string
     nextNote.fret := new_fret
     nextNote.startTime := Funcs.Time_getCurrentTime()
-
+// debug2("ns " & nextNote.string & "; nf " & nextNote.fret)
     // playModeGlobal.pos := pos
     extControl(ExtEventType.pos, pos)
 end function
 
 function Board_resetLastNote()
-    lastNote.fret := playModeGlobal.pos
-    lastNote.string := 6
-    lastNote.note := Board_string2note(lastNote.string, lastNote.fret)
+    mGuitarNote_reset(lastNote)
 end function
 
 function getString(n) -> result

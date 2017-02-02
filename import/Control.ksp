@@ -100,10 +100,17 @@ function extControl(etype, value)
             end if
 
         case ExtEventType.pos
-{             if (value # playModeGlobal.pos)
-                Board_resetLastNote()
+            declare old_val
+            old_val := playModeGlobal.pos
+            playModeGlobal.pos := value
+
+            if (old_val # value)
+                declare isPlaying
+                isPlaying := Playing_isPlayingSomething()
+                if (isPlaying = 0)
+                    Board_resetLastNote()
+                end if                
             end if
- }            playModeGlobal.pos := value
 
         case ExtEventType.duration
             playModeGlobal.altStrokeInterval := value

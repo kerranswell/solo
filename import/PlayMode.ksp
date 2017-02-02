@@ -202,20 +202,6 @@ function setPlayMode(velocity, string, note)
 }
     end if
 // debug("nxt str " & nextNote.string & ", ov " & Strings[nextNote.string-1].overlap)
-    playMode.legato := Strings[nextNote.string-1].overlap
-    playMode.offset := 0
-    if (playMode.rh_Muted = 0 and playModeGlobal.slide = 0)
-        // playMode.legato := Playing_isOverlapping(string, note)
-
-        if (UI.tapSamples = 0)
-
-            if (playMode.legato = 1 or playModeGlobal.tapping = 1)
-                declare r
-                r := random(0, 770)
-                playMode.offset := (20 + r) * 1000 // (30-800)ms
-            end if
-        end if
-    end if
 
 {     if (playMode.artCode = ArtsCodes.m_pd and UI.softMute = 0)
         playMode.artCode := ArtsCodes.m2_pd
@@ -235,6 +221,24 @@ function setPlayMode(velocity, string, note)
         playMode.pitchBendNatural := Globals.pitchBendNatural
     end if
 
+    playMode.legato := Strings[nextNote.string-1].overlap
+    playMode.offset := 0
+    if (playMode.rh_Muted = 0 and playModeGlobal.slide = 0)
+        // playMode.legato := Playing_isOverlapping(string, note)
+
+        if (UI.tapSamples = 0)
+
+            if (playMode.legato = 1 or playModeGlobal.tapping = 1)
+                declare r
+                declare upperLimit := 770
+                if (playMode.pitchBendNatural # 0)
+                    upperLimit := 100
+                end if
+                r := random(0, upperLimit)
+                playMode.offset := (20 + r) * 1000 // (30-800)ms
+            end if
+        end if
+    end if
     // uiFeedbackPlayMode()
 
 end function

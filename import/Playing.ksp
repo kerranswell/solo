@@ -264,7 +264,7 @@ function Playing_startChildren(i)
         end if
     end if
 
-    if (Playing[i].playmode.legato = 0 and playModeGlobal.tapping = 0 and playModeGlobal.slide = 0)
+    if (Playing[i].playmode.legato = 0 and playModeGlobal.tapping = 0 and playModeGlobal.slide = 0 or Playing[i].playmode.rh_Muted = 1)
         createChild(i, 1)
         if (j # -1)
             PlayMode_resetPlayMode(Playing[j].playMode)
@@ -538,9 +538,20 @@ end function
 function Playing_stopNotesOnString(string)
     declare i
     for i := 0 to Globals.maxVoices-1
-        if (Playing[i].gn.string = string and Playing[i].parent = -1)
+        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].parent = -1)
             // debug("stop: " & Playing[i].sys)
             Playing_stopNote(i)
+        end if
+    end for
+end function
+
+function Playing_stringIsPlaying(string) -> result
+    declare i
+    result := 0
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].parent = -1 and Playing[i].ghost = 0)
+            result := 1
+            break(i, Globals.maxVoices)
         end if
     end for
 end function
@@ -696,6 +707,20 @@ function Playing_chooseActive(i) -> result
                 result := j
                 break(j, Globals.maxVoices)
             end if
+        end if
+    end for
+
+end function
+
+function Playing_isPlayingSomething -> result
+    declare i
+
+    result := 0
+
+    for i := 0 to Globals.maxVoices-1
+        if (Playing[i].sys # -1 and Playing[i].ghost = 0)
+            result := 1
+            break(i, Globals.maxVoices)
         end if
     end for
 
