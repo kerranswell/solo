@@ -36,6 +36,7 @@ macro Playing_on_init
         declare ghost := 0
 
         declare &_Zone zone
+        declare valueForSampleSpeed // value of a control which effects engine sample speed
 
         declare &_PlayingTimeOperation timeOp
 
@@ -226,12 +227,14 @@ function Playing_startChildren(i)
             // declare overlap
             // overlap := Playing_isOverlapping(Playing[i].gn.string, Playing[i].gn.note)
             declare last_note := Strings[nextNote.string-1].lastNote.note
+            Playing[j].valueForSampleSpeed := playModeGlobal.slide
 
+            debug_Strings2()
             if (Strings[nextNote.string-1].overlap = 0)
                 if (Playing[j].gn.fret > 0)
                     Playing[j].playMode.slideIn := 1
-                    Playing[j].playMode.artCode := ArtsCodes.si
-                    ev := getEngineSlideInSpeed(playModeGlobal.slide)
+                    Playing[j].playMode.artCode := ArtsCodes.si                    
+                    ev := getEngineSlideInSpeed(Playing[j].valueForSampleSpeed)
                 end if
             else 
                 if (lastNote.note < Playing[i].gn.note)
@@ -240,7 +243,7 @@ function Playing_startChildren(i)
                         Playing[j].playMode.slideUp := 1
                         Playing[j].playMode.artCode := ArtsCodes.su
                     else 
-                        ev := getEngineSlide2Speed(playModeGlobal.slide)
+                        ev := getEngineSlide2Speed(Playing[j].valueForSampleSpeed)
                         Playing[j].playMode.slideUp2 := 1
                         Playing[j].playMode.artCode := ArtsCodes.su2
                     end if
@@ -256,7 +259,7 @@ function Playing_startChildren(i)
             end if
 
             if (Playing[j].playmode.duration # -1)
-                Playing[j].playmode.duration := getDurationForSlideDown(playModeGlobal.slide, Playing[j].playMode.duration)
+                Playing[j].playmode.duration := getDurationForSlideDown(Playing[j].valueForSampleSpeed, Playing[j].playMode.duration)
             end if
             Playing_playNote(j)
             set_engine_par($ENGINE_PAR_SPEED, ev, Playing[j].groupIndex, -1, -1)
@@ -420,6 +423,8 @@ function Playing_resetItem(i)
     Playing[i].timeOp.vibrato := -1
     Playing[i].timeOp.pitchTable := -1
     Playing[i].timeOp.pitchBendReturned := 0
+
+    Playing[i].valueForSampleSpeed := -1
 end function
 
 function Playing_resetItemWithChilds(i)
@@ -468,7 +473,7 @@ function Playing_isOverlapping(string, note) -> result
     result := -1
     declare i
     for i := 0 to Globals.maxVoices-1
-        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.note # note and Playing[i].ghost = 0)
+        if (Playing[i].sys # -1 and Playing[i].gn.string = string and Playing[i].gn.note # note and Playing[i].ghost = 0 and Playing[i].playMode.ghostNoise = 0)
             result := i
         end if
     end for
@@ -603,6 +608,7 @@ function Playing_changeTune(i, val, rel, tuneType)
     end if
 
     if (Globals.opString = 0 or Globals.opString = Playing[i].gn.string)
+        debug2("tunning string (" & Globals.opString & ") " & Playing[i].gn.string)
         change_tune(Playing[i].sys, value, rel)
     end if
 end function
@@ -723,5 +729,20 @@ function Playing_isPlayingSomething -> result
             break(i, Globals.maxVoices)
         end if
     end for
+
+end function
+
+function Playing_transformZoneLength(i) -> result
+    result := Playing[i].zone.length / 1000
+
+    declare val := Playing[i].valueForSampleSpeed
+
+    if (Playing[i].playMode.slideIn > 0)
+        if (result = 0)
+            result := 275
+        end if
+        val := Funcs.ask(val, playModeGlobal.slide, -1)
+        result := getSlideInLength(val, result)
+     end if
 
 end function

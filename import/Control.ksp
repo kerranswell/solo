@@ -328,13 +328,15 @@ function onController
             Globals.opStringAuto := 1
             declare v
             v := %CC[$CC_NUM] / 10
-            if (v > Const.stringCount)
+            if (v > 0 and v <= Const.stringCount)
                 Globals.opStringAuto := 0
-                v := 0
-            end if
-            if (v # 0)
+                Globals.opString := v
+            else if (v > Const.stringCount)
                 Globals.opStringAuto := 0
-                extControl(ExtEventType.triggerPT, v)
+                Globals.opString := 0
+            else if (v = 0)
+                Globals.opStringAuto := 1
+                // extControl(ExtEventType.triggerPT, v)
             end if
 
         { Pos }
@@ -439,6 +441,13 @@ function timeOperations()
             declare length
             declare zlen
 
+            if (Playing[i].ghost = 1)
+                zlen := Playing_transformZoneLength(i)
+                if (now - Playing[i].startTime >= zlen)
+                    Playing_stopNote(i)
+                end if
+            end if
+
 // debug2(i & ":: " & Playing[i].playmode.pickNoise & ", " & Playing[i].active)
             if (Playing[i].playmode.pickNoise > 0 and Playing[i].active = 1)
                 zlen := Playing[i].zone.length / 1000
@@ -454,11 +463,7 @@ function timeOperations()
             end if
 
             if (Playing[i].playMode.slideIn > 0 and Playing[i].active = 1)
-                zlen := Playing[i].zone.length / 1000
-                if (zlen = 0) 
-                    zlen := 275
-                end if
-                length := getSlideInLength(playModeGlobal.slide, zlen)
+                length := Playing_transformZoneLength(i)
                 if (now - Playing[i].startTime >= length)
                     note_off(Playing[i].sys)
                 end if

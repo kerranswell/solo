@@ -111,3 +111,11 @@ function reverseValue(val) -> result
 		result := 0
 	end if
 end function
+
+function ask(v1, v2, rev_val) -> result
+    if (v1 = rev_val)
+        result := v2
+    else 
+        result := v1
+    end if
+end function
