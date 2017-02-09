@@ -99,6 +99,9 @@ function extControl(etype, value)
                 Globals.tappingStarted := 1
             end if
 
+        case ExtEventType.forceFret
+            playModeGlobal.forceFret := value
+
         case ExtEventType.pos
             declare old_val
             old_val := playModeGlobal.pos
@@ -343,6 +346,10 @@ function onController
         case 29
             Globals.posDefault := %CC[$CC_NUM]
             extControl(ExtEventType.pos, %CC[$CC_NUM])
+
+        { Force Fret }
+        case 31
+            extControl(ExtEventType.forceFret, %CC[$CC_NUM])
 
         { Pitch Bend Natural }
         case 30

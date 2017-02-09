@@ -40,6 +40,7 @@ macro PlayMode_on_init
         declare altStroke := 0
         declare altStrokeInterval := Intervals.Eighth
         declare pos := Globals.posDefault // left hand position
+        declare forceFret := -1 // force fret
         declare vibratoSpeed := VIBRATO_SPEED_DEFAULT
         declare vibratoDepth := 0
 
