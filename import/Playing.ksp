@@ -229,7 +229,7 @@ function Playing_startChildren(i)
             declare last_note := Strings[nextNote.string-1].lastNote.note
             Playing[j].valueForSampleSpeed := playModeGlobal.slide
 
-            debug_Strings2()
+            // debug_Strings2()
             if (Strings[nextNote.string-1].overlap = 0)
                 if (Playing[j].gn.fret > 0)
                     Playing[j].playMode.slideIn := 1
@@ -608,7 +608,7 @@ function Playing_changeTune(i, val, rel, tuneType)
     end if
 
     if (Globals.opString = 0 or Globals.opString = Playing[i].gn.string)
-        debug2("tunning string (" & Globals.opString & ") " & Playing[i].gn.string)
+        // debug2("tunning string (" & Globals.opString & ") " & Playing[i].gn.string)
         change_tune(Playing[i].sys, value, rel)
     end if
 end function

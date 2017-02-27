@@ -40,11 +40,20 @@ function Board_findFret(string, note) -> result
 end function
 
 function Board_setNote(next_note)
-    if (playModeGlobal.tapping = 1 and Globals.tappingStarted = 1)
-        Board_setNoteTapping(next_note)
-    else 
-        Board_setNoteStandard(next_note)
+    declare forced := 0
+    if (playModeGlobal.forceFret # -1)  
+        forced := Board_setNoteForcedFret(next_note)
     end if
+
+    if (forced = 0)
+        if (playModeGlobal.tapping = 1 and Globals.tappingStarted = 1)
+            Board_setNoteTapping(next_note)
+        else 
+            Board_setNoteStandard(next_note)
+        end if
+    end if
+
+    nextNote.startTime := Funcs.Time_getCurrentTime()
 
     if (playModeGlobal.tapping = 1)
         Globals.tappingStarted := 1
@@ -54,6 +63,22 @@ function Board_setNote(next_note)
     end if
 
     Strings_setNextNote()
+end function
+
+function Board_setNoteForcedFret(next_note) -> result
+    result := 0
+    declare i
+    declare n
+    for i := 1 to Const.stringCount
+        n := Board_string2note(i, playModeGlobal.forceFret)
+        if (next_note = n)
+            result := 1
+            nextNote.note := next_note
+            nextNote.string := i
+            nextNote.fret := playModeGlobal.forceFret
+            break(i, Const.stringCount+1)
+        end if
+    end for
 end function
 
 function Board_setNoteTapping(next_note)
@@ -102,7 +127,6 @@ function Board_setNoteTapping(next_note)
     nextNote.note := next_note
     nextNote.string := new_string
     nextNote.fret := new_fret
-    nextNote.startTime := Funcs.Time_getCurrentTime()
     // debug2("ns " & nextNote.string & "; nf " & nextNote.fret)
 end function
 
@@ -245,7 +269,6 @@ function Board_setNoteStandard(next_note)
 // debug2("pos " & pos & ", dir " & dir & ", diff " & diff)
 // debug2("string " & string & " is playing:  " & stringIsPlaying)
 // debug_Playing();
-
         pos := pos + dir * diff
         new_string := string
         new_fret := pos + cur_finger_pos
@@ -260,7 +283,6 @@ function Board_setNoteStandard(next_note)
     end if
 
     if (force_pos >= 0 and force_pos <= Const.fretCount-3)
-
         if (pos >= force_pos-1 and pos <= force_pos+3)
             pos := force_pos
         end if
@@ -293,7 +315,6 @@ function Board_setNoteStandard(next_note)
     nextNote.note := next_note
     nextNote.string := new_string
     nextNote.fret := new_fret
-    nextNote.startTime := Funcs.Time_getCurrentTime()
 // debug2("ns " & nextNote.string & "; nf " & nextNote.fret)
     // playModeGlobal.pos := pos
     extControl(ExtEventType.pos, pos)

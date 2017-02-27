@@ -252,6 +252,7 @@ end on
 function onController
 // debug("Before CC")
 // debug_Playing()
+    declare v
     select ($CC_NUM)
 
         { Alt Stroke }
@@ -300,7 +301,6 @@ function onController
 
         { Slide [ In / Out / Up / Down ] Speed }
         case 26
-
             extControl(ExtEventType.slide, %CC[$CC_NUM])
             // playModeGlobal.slideSpeed := %CC[$CC_NUM]
 {             extControl(ExtEventType.slideOut, %CC[$CC_NUM])
@@ -329,7 +329,6 @@ function onController
         {  String chooser }
         case 28
             Globals.opStringAuto := 1
-            declare v
             v := %CC[$CC_NUM] / 10
             if (v > 0 and v <= Const.stringCount)
                 Globals.opStringAuto := 0
@@ -349,11 +348,15 @@ function onController
 
         { Force Fret }
         case 31
-            extControl(ExtEventType.forceFret, %CC[$CC_NUM])
+            v := %CC[$CC_NUM] - 100
+            if (v < 0 or v > Const.fretCount-1)
+                v := -1
+            end if
+            extControl(ExtEventType.forceFret, v)
 
         { Pitch Bend Natural }
         case 30
-            declare v
+            debug2("CC 30: " & %CC[$CC_NUM])
             v := %CC[$CC_NUM]
             if (v >= 11 and v <= 14) 
                 v := 10 - v
@@ -384,6 +387,7 @@ on listener
             extControl(ExtEventType.triggerPT, 0)
             extControl(ExtEventType.vibratoDepth, 0)
             extControl(ExtEventType.vibratoSpeed, VIBRATO_SPEED_DEFAULT)
+            extControl(ExtEventType.pitchBendNatural, 0)
             // UI_Hit_resetAll()
             Durations_switch(0)
             mGuitarNote_reset(lastNote)
